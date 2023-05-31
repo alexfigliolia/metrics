@@ -1,0 +1,1 @@
+export { CriticalResourcePlugin } from "./CriticalResourcePlugin";
