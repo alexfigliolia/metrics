@@ -1,5 +1,5 @@
 {
-  "name": "metrics",
+  "name": "@figliolia/metrics",
   "version": "1.0.0",
   "description": "A developer-centric frontend performance library",
   "main": "dist/index.js",
@@ -14,6 +14,18 @@
     "build": "rm -rf dist && tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "lint": "tsc --noemit && eslint ./ --fix"
   },
+  "homepage": "https://github.com/alexfigliolia/metrics#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexfigliolia/metrics.git"
+  },
+  "keywords": [
+    "performance",
+    "metrics",
+    "monitoring",
+    "CLS",
+    "critical assets"
+  ],
   "author": "Alex Figliolia",
   "license": "MIT",
   "devDependencies": {

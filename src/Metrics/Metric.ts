@@ -10,6 +10,7 @@ export class Metric<
   public name: string;
   public stopTime = 0;
   public startTime = 0;
+  public duration = 0;
   public status: Status = Status.idol;
   public readonly events = CoreEvents;
   public plugins = {} as RegisteredPlugins<P>;
@@ -27,11 +28,13 @@ export class Metric<
 
   public stop(time = performance.now()) {
     this.stopTime = time;
+    this.duration = this.stopTime - this.startTime;
     this.status = Status.complete;
     this.emit(CoreEvents.stop, this);
   }
 
   public reset() {
+    this.duration = 0;
     this.stopTime = 0;
     this.startTime = 0;
     this.status = Status.idol;

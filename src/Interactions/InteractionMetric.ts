@@ -19,6 +19,7 @@ export class InteractionMetric<
     this.failed = false;
     this.succeeded = true;
     this.stopTime = stopTime;
+    this.duration = this.stopTime - this.startTime;
     this.status = Status.complete;
     this.emit(ReliabilityEvents.success, this);
   }
@@ -28,8 +29,13 @@ export class InteractionMetric<
     this.failed = true;
     this.succeeded = false;
     this.stopTime = stopTime;
+    this.duration = this.stopTime - this.startTime;
     this.status = Status.failed;
     this.emit(ReliabilityEvents.failure, this);
+  }
+
+  public override stop(time = performance.now()) {
+    this.succeed(undefined, time);
   }
 
   public override reset() {

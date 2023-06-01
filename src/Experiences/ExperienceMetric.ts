@@ -54,6 +54,8 @@ export class ExperienceMetric<
       metric.on(CoreEvents.start, (m) => {
         if (this.status === Status.idol) {
           this.start(m.startTime);
+        } else {
+          this.startTime = Math.min(m.startTime, this.startTime);
         }
       });
     });
