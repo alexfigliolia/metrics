@@ -47,7 +47,7 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
 
   private querySelector(metric: T) {
     const element = document.querySelector(this.selector);
-    if (!element) {
+    if (!element && Plugin.IS_DEV) {
       if (this.initialLayout === CLSPlugin.DOMRect) {
         console.warn(
           `CLS Plugin ${metric.name}: A DOM element with the selector "${this.selector}" was not found`

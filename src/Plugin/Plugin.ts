@@ -9,7 +9,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
   }
 
   public register(metric: T) {
-    if (this.registered) {
+    if (this.registered && Plugin.IS_DEV) {
       console.warn(
         `The plugin ${this.constructor.name} was registered on ${metric.name} more than once. Registering plugins is only necessary a single time`
       );
@@ -38,4 +38,6 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
   public success(metric: T) {}
 
   public failure(metric: T) {}
+
+  public static IS_DEV = process?.env?.NODE_ENV === "development";
 }
