@@ -1,5 +1,6 @@
 import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
+import { Cache } from "./Cache";
 
 export class CriticalResourcePlugin<
   T extends Metric<any, any>
@@ -7,7 +8,10 @@ export class CriticalResourcePlugin<
   public cacheRate = 0;
   public criticalSize = 0;
   public extensions: Set<string>;
+  private static Cache = new Cache();
   public metricName = "critical-resources";
+  private static browserSupport = "performance" in window;
+  public browserSupport = CriticalResourcePlugin.browserSupport;
   constructor(extensions: string[] = ["js"]) {
     super();
     this.extensions = new Set(extensions);
@@ -18,32 +22,45 @@ export class CriticalResourcePlugin<
     this.criticalSize = 0;
   }
 
-  public override stop(metric: T) {
-    this.iterateResources(metric.stopTime);
+  public override stop({ startTime, stopTime }: T) {
+    const { cacheRate, criticalSize } = this.iterateResources(
+      startTime,
+      stopTime
+    );
+    this.cacheRate = cacheRate;
+    this.criticalSize = criticalSize;
   }
 
-  private iterateResources(stopTime: number) {
-    if ("performance" in window) {
+  private iterateResources = CriticalResourcePlugin.Cache.withCache(
+    (startTime: number, stopTime: number) => {
+      if (!this.browserSupport) {
+        return { cacheRate: 0, criticalSize: 0 };
+      }
+      let cachedSize = 0;
+      let criticalSize = 0;
       const resources = performance.getEntriesByType(
         "resource"
       ) as PerformanceResourceTiming[];
-      let cachedSize = 0;
       for (const resource of resources) {
-        if (resource.responseEnd > stopTime) {
+        const { name, fetchStart, responseEnd, transferSize, decodedBodySize } =
+          resource;
+        if (fetchStart < startTime || responseEnd > stopTime) {
           continue;
         }
-        if (!this.extensions.has(this.parseExtension(resource.name))) {
+        if (!this.extensions.has(this.parseExtension(name))) {
           continue;
         }
-        const { decodedBodySize, transferSize } = resource;
-        this.criticalSize += decodedBodySize;
+        criticalSize += decodedBodySize;
         if (transferSize === 0) {
           cachedSize += decodedBodySize;
         }
       }
-      this.cacheRate = (cachedSize / this.criticalSize) * 100;
+      return {
+        criticalSize,
+        cacheRate: (cachedSize / criticalSize) * 100,
+      };
     }
-  }
+  );
 
   private parseExtension(url: string) {
     try {
