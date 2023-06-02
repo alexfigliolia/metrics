@@ -9,10 +9,9 @@ export class CriticalResourcePlugin<
   public criticalSize = 0;
   public extensions: Set<string>;
   private static Cache = new Cache();
-  public metricName = "critical-resources";
   private static browserSupport = "performance" in window;
   public browserSupport = CriticalResourcePlugin.browserSupport;
-  constructor(extensions: string[] = ["js"]) {
+  constructor(extensions: string[] = ["js", "css"]) {
     super();
     this.extensions = new Set(extensions);
   }

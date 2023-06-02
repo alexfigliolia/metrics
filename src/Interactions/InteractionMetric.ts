@@ -18,9 +18,7 @@ export class InteractionMetric<
     this.data = data;
     this.failed = false;
     this.succeeded = true;
-    this.stopTime = stopTime;
-    this.duration = this.stopTime - this.startTime;
-    this.status = Status.complete;
+    super.stop(stopTime);
     this.emit(ReliabilityEvents.success, this);
   }
 
@@ -28,14 +26,8 @@ export class InteractionMetric<
     this.data = data;
     this.failed = true;
     this.succeeded = false;
-    this.stopTime = stopTime;
-    this.duration = this.stopTime - this.startTime;
-    this.status = Status.failed;
+    super.stop(stopTime, Status.failed);
     this.emit(ReliabilityEvents.failure, this);
-  }
-
-  public override stop(time = performance.now()) {
-    this.succeed(undefined, time);
   }
 
   public override reset() {
@@ -43,5 +35,25 @@ export class InteractionMetric<
     this.data = undefined;
     this.succeeded = false;
     super.reset();
+  }
+
+  public record<T extends (...args: any[]) => any>(func: T) {
+    return (...args: Parameters<T>) => {
+      this.start();
+      try {
+        const resolve = func(...args);
+        if (resolve instanceof Promise) {
+          return resolve
+            .then((v) => {
+              this.succeed();
+              return v;
+            })
+            .catch(this.fail);
+        }
+        return resolve;
+      } catch (error: any) {
+        this.fail(error);
+      }
+    };
   }
 }

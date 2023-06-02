@@ -7,5 +7,5 @@ export interface IExperience<
 > {
   name: string;
   metrics: T;
-  plugins: P;
+  plugins?: P;
 }

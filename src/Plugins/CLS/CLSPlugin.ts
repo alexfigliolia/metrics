@@ -3,6 +3,7 @@ import { Plugin } from "Plugin/Plugin";
 import type { Layout, LayoutShift } from "./types";
 
 export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
+  private name = "";
   public selector: string;
   public layoutShifts: LayoutShift[] = [];
   public initialLayout: DOMRect = CLSPlugin.DOMRect;
@@ -21,15 +22,22 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
     this.selector = selector;
   }
 
-  public override start(metric: T) {
-    const element = this.querySelector(metric);
+  public override register(metric: T) {
+    if (!this.registered) {
+      this.name = metric.name;
+    }
+    super.register(metric);
+  }
+
+  public override start() {
+    const element = this.querySelector();
     if (element) {
       this.initialLayout = element.getBoundingClientRect();
     }
   }
 
   public override stop(metric: T) {
-    const element = this.querySelector(metric);
+    const element = this.querySelector();
     if (element) {
       this.detectLayoutShift(element, metric.stopTime);
     }
@@ -40,21 +48,21 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
     this.initialLayout = CLSPlugin.DOMRect;
   }
 
-  public inspect(metric: T, time = performance.now()) {
-    const element = this.querySelector(metric);
+  public inspect(time = performance.now()) {
+    const element = this.querySelector();
     this.detectLayoutShift(element, time);
   }
 
-  private querySelector(metric: T) {
+  private querySelector() {
     const element = document.querySelector(this.selector);
     if (!element && Plugin.IS_DEV) {
       if (this.initialLayout === CLSPlugin.DOMRect) {
         console.warn(
-          `CLS Plugin ${metric.name}: A DOM element with the selector "${this.selector}" was not found`
+          `CLS Plugin ${this.name}: A DOM element with the selector "${this.selector}" was not found`
         );
       } else {
         console.warn(
-          `CLS Plugin ${metric.name}: The element corresponding to the selector "${this.selector}" has been removed from the DOM`
+          `CLS Plugin ${this.name}: The element corresponding to the selector "${this.selector}" has been removed from the DOM`
         );
       }
     }

@@ -21,15 +21,21 @@ export class Metric<
   }
 
   public start(time = performance.now()) {
+    if (this.status !== Status.idol) {
+      return;
+    }
     this.startTime = time;
     this.status = Status.inProgress;
     this.emit(CoreEvents.start, this);
   }
 
-  public stop(time = performance.now()) {
+  public stop(time = performance.now(), status: Status = Status.complete) {
+    if (this.status !== Status.inProgress) {
+      return;
+    }
     this.stopTime = time;
     this.duration = this.stopTime - this.startTime;
-    this.status = Status.complete;
+    this.status = status;
     this.emit(CoreEvents.stop, this);
   }
 

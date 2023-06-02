@@ -17,8 +17,13 @@ export class PageLoadPlugin<T extends Metric<any, any>> extends Plugin<T> {
     }
   }
 
-  private static setTiming() {
-    this.timing = performance.now();
+  public override start(metric: T) {
+    metric.startTime = PageLoadPlugin.timing;
+  }
+
+  public override reset() {
+    this.transition = false;
+    this.initialLoad = false;
   }
 
   public static enable() {
@@ -43,12 +48,7 @@ export class PageLoadPlugin<T extends Metric<any, any>> extends Plugin<T> {
     });
   }
 
-  public override start(metric: T) {
-    metric.startTime = PageLoadPlugin.timing;
-  }
-
-  public override reset() {
-    this.transition = false;
-    this.initialLoad = false;
+  private static setTiming() {
+    this.timing = performance.now();
   }
 }

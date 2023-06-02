@@ -21,8 +21,8 @@ export class ProcessingQueue<T, C extends Record<string, any>> {
     const success = await Beaconer.send(
       this.url,
       JSON.stringify({
-        ...this.requestData,
         metrics: this.queue,
+        config: this.requestData,
       })
     );
     this.queue = [];

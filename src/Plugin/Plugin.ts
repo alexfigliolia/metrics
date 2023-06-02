@@ -1,7 +1,7 @@
 import type { Metric } from "Metrics/Metric";
 
 export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
-  private registered = false;
+  protected registered = false;
   constructor(metric?: T) {
     if (metric) {
       this.register(metric);
@@ -25,7 +25,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
     });
   }
 
-  private validateEvent(event: string, metric: T): event is keyof Plugin<T> {
+  protected validateEvent(event: string, metric: T): event is keyof Plugin<T> {
     return event in metric.events && event !== "constructor";
   }
 
