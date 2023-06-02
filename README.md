@@ -161,9 +161,14 @@ Let's create a working example:
 import { Metric, ExperienceMetric } from "@figliolia/metrics";
 // HomeScreenMetrics.ts
 
+// Metrics for HomeScreen components
 export const HeaderMetric = new Metric("Header TTI");
+
 export const FooterMetric = new Metric("Footer TTI");
+
 export const DashboardMetric = new Metric("Dashboard TTI");
+
+// An Experience Metric composed from the above metrics
 export const HomeScreenMetric = new ExperienceMetric({
   name: "Home Screen", 
   metrics: [
@@ -222,11 +227,13 @@ import { Metric, InteractionMetric, ExperienceMetric } from "@figliolia/metrics"
 import { Reporter } from "./MetricReporter";
 
 const MyMetric = new Metric("My Metric", { Reporter });
+
 const MyInteraction = new MyInteraction("My Interaction", { Reporter });
+ 
 const MyExperience = new ExperienceMetric({
   name: "My Experience",
+  plugins: { Reporter },
   metrics: [MyMetric, MyInteraction],
-  plugins: { Reporter }
 });
 ```
 Using our `Reporter`, each metric will now post their results to the service provided above. The `Reporter` also comes with a few optimizations over more standard HTTP Requests:
@@ -355,10 +362,14 @@ import { Metric, PageLoadPlugin, CriticalResourcePlugin } from "@figliolia/metri
 
 PageLoadPlugin.enable();
 
+// Home Screen sub-metrics
 export const HeaderMetric = new Metric("Header TTI");
+
 export const FooterMetric = new Metric("Footer TTI");
+
 export const DashboardMetric = new Metric("Dashboard TTI");
 
+// Home Screen Experience
 export const HomeScreenMetric = new ExperienceMetric({
   name: "Home Screen", 
   metrics: [
