@@ -15,7 +15,7 @@ import { Plugin } from "../../Plugin/Plugin";
  * const metric = new Metric("My Metric", { pageLoad: PageLoadPlugin });
  * ```
  */
-export declare class PageLoadPlugin<T extends Metric<any, any>> extends Plugin<T> {
+export declare class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
     static timing: number;
     transition: boolean;
     initialLoad: boolean;

@@ -16,7 +16,9 @@ import type { Layout, LayoutShift } from "./types";
  * });
  * ```
  */
-export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
+export class CLSPlugin<
+  T extends Metric<any, any> = Metric<any, any>
+> extends Plugin<T> {
   private name = "";
   public selector: string;
   public layoutShifts: LayoutShift[] = [];

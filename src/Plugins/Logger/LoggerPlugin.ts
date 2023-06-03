@@ -13,7 +13,9 @@ import { Plugin } from "Plugin/Plugin";
  * const metric = new Metric("My Metric", { logger: LoggerPlugin });
  * ```
  */
-export class LoggerPlugin<T extends Metric<any, any>> extends Plugin<T> {
+export class LoggerPlugin<
+  T extends Metric<any, any> = Metric<any, any>
+> extends Plugin<T> {
   /**
    * Start
    *

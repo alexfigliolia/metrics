@@ -16,7 +16,7 @@ import { Plugin } from "../../Plugin/Plugin";
  * });
  * ```
  */
-export declare class CriticalResourcePlugin<T extends Metric<any, any>> extends Plugin<T> {
+export declare class CriticalResourcePlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
     cacheRate: number;
     criticalSize: number;
     extensions: Set<string>;

@@ -27,7 +27,7 @@ import type { ProcessingQueue } from "./ProcessingQueue";
  *  // only one ProcessingQueue is necessary per application or analytics service
  *   private static Queue = new ProcessingQueue("https://my-analytics-service.com");
  *   constructor(name: string, plugins: P = {} as P) {
- *     plugins.reporter = new new ReporterPlugin(Queue);
+ *     plugins.reporter = new new ReporterPlugin(ReportedMetric.Queue);
  *     super(name, plugins);
  *   }
  * }

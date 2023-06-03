@@ -19,7 +19,7 @@ import { Cache } from "./Cache";
  * ```
  */
 export class CriticalResourcePlugin<
-  T extends Metric<any, any>
+  T extends Metric<any, any> = Metric<any, any>
 > extends Plugin<T> {
   public cacheRate = 0;
   public criticalSize = 0;
