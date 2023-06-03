@@ -39,7 +39,7 @@ import type { ProcessingQueue } from "./ProcessingQueue";
 export class ReporterPlugin<
   T extends Metric<any, any> = Metric<any, any>
 > extends Plugin<T> {
-  private processor: ProcessingQueue<T>;
+  protected processor: ProcessingQueue<T>;
   constructor(processor: ProcessingQueue<T>) {
     super();
     this.processor = processor;
@@ -51,7 +51,7 @@ export class ReporterPlugin<
    * Enqueues the target metric to be sent to the `ProcessingQueue's`
    * destination
    */
-  public override stop(metric: T) {
+  protected override stop(metric: T) {
     void this.processor.enqueue(metric);
   }
 }

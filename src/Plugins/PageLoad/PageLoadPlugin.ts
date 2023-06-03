@@ -40,7 +40,7 @@ export class PageLoadPlugin<
    * Sets the target Metric's `startTime` equal to the browser's
    * most recent navigation.
    */
-  public override start(metric: T) {
+  protected override start(metric: T) {
     metric.startTime = PageLoadPlugin.timing;
   }
 
@@ -50,7 +50,7 @@ export class PageLoadPlugin<
    * Resets the `transition` and `initialLoad` properties of the
    * instance
    */
-  public override reset() {
+  protected override reset() {
     this.transition = false;
     this.initialLoad = false;
   }

@@ -21,7 +21,7 @@ export class LoggerPlugin<
    *
    * Logs the target Metric's `start` event
    */
-  public override start(metric: T) {
+  protected override start(metric: T) {
     console.log(
       "%c%s",
       "color: rgb(255, 111, 0); font-weight: bold",
@@ -35,7 +35,7 @@ export class LoggerPlugin<
    *
    * Logs the target Metric's `stop` event
    */
-  public override stop(metric: T) {
+  protected override stop(metric: T) {
     console.log(
       "%c%s",
       "color: rgb(29, 51, 255); font-weight: bold",
@@ -49,7 +49,7 @@ export class LoggerPlugin<
    *
    * Logs the target Metric's `success` event
    */
-  public override success(metric: T) {
+  protected override success(metric: T) {
     console.log(
       "%c%s",
       "color: #26ad65; font-weight: bold",
@@ -63,7 +63,7 @@ export class LoggerPlugin<
    *
    * Logs the target Metric's `failure` event
    */
-  public override failure(metric: T) {
+  protected override failure(metric: T) {
     console.log(
       "%c%s",
       "color: rgb(255, 43, 43); font-weight: bold",
@@ -77,7 +77,7 @@ export class LoggerPlugin<
    *
    * Logs the target Metric's `reset` event
    */
-  public override reset(metric: T) {
+  protected override reset(metric: T) {
     console.log(
       "%c%s",
       "color: rgb(166, 166, 166); font-weight: bold",

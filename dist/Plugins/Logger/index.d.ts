@@ -1,1 +1,0 @@
-export { LoggerPlugin } from "./LoggerPlugin";

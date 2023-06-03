@@ -38,7 +38,7 @@ export class CriticalResourcePlugin<
    * Resets the Metric's `cacheRate` and `criticalSize` back
    * to zero
    */
-  public override reset() {
+  protected override reset() {
     this.cacheRate = 0;
     this.criticalSize = 0;
   }
@@ -49,7 +49,7 @@ export class CriticalResourcePlugin<
    * Records the `criticalSize` and `cacheRate` of resources loaded
    * between the Metric's `start()` and `stop()` events
    */
-  public override stop({ startTime, stopTime }: T) {
+  protected override stop({ startTime, stopTime }: T) {
     const { cacheRate, criticalSize } = this.iterateResources(
       startTime,
       stopTime
