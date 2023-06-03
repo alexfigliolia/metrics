@@ -1,7 +1,6 @@
 import { EventEmitter } from "@figliolia/event-emitter";
 import { CoreEvents, Status } from "./types";
-import type { MetricEvents, PluginTable, RegisteredPlugins } from "./types";
-import { Plugin } from "Plugin/Plugin";
+import type { MetricEvents, PluginTable } from "./types";
 
 /**
  * Metric
@@ -31,13 +30,14 @@ export class Metric<
   public stopTime = 0;
   public startTime = 0;
   public duration = 0;
+  public plugins = {} as P;
   public status: Status = Status.idol;
   public readonly events = CoreEvents;
-  public plugins = {} as RegisteredPlugins<P>;
   constructor(name: string, plugins = {} as P) {
     super();
     this.name = name;
-    this.registerPlugins(plugins);
+    this.plugins = plugins;
+    this.registerPlugins();
   }
 
   /**
@@ -88,20 +88,11 @@ export class Metric<
   /**
    * Register Plugins
    *
-   * Instantiates each plugin provided and indexes them
-   * on the `Metric` using the provided keys
+   * Instantiates each plugin specified
    */
-  private registerPlugins(plugins: P) {
-    for (const [name, plugin] of Object.entries(plugins)) {
-      let instance: Plugin;
-      if (plugin instanceof Plugin) {
-        instance = plugin;
-        plugin.register(this);
-      } else {
-        instance = new Plugin(this);
-      }
-      // @ts-ignore
-      this.plugins[name] = instance;
+  private registerPlugins() {
+    for (const key in this.plugins) {
+      this.plugins[key].register(this);
     }
   }
 }

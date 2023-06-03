@@ -23,11 +23,6 @@ import type { Metric } from "Metrics/Metric";
  */
 export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
   protected registered = false;
-  constructor(metric?: T) {
-    if (metric) {
-      this.register(metric);
-    }
-  }
 
   /**
    * Register

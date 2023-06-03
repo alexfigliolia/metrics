@@ -25,13 +25,14 @@ export class PageLoadPlugin<
   public static enabled = false;
   public static transitionID = -1;
   private static compatible = window && window.history;
-  constructor(metric?: T) {
-    super(metric);
+
+  public override register(metric: T) {
     if (!PageLoadPlugin.enabled) {
       console.warn(
         "Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the PageLoadPlugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle"
       );
     }
+    super.register(metric);
   }
 
   /**
@@ -42,6 +43,8 @@ export class PageLoadPlugin<
    */
   protected override start(metric: T) {
     metric.startTime = PageLoadPlugin.timing;
+    this.transition = PageLoadPlugin.timing === 0;
+    this.initialLoad = !this.transition;
   }
 
   /**
@@ -83,6 +86,7 @@ export class PageLoadPlugin<
       this.setTiming();
       this.transitionID++;
     });
+    this.enabled = true;
   }
 
   /**

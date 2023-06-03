@@ -15,15 +15,9 @@ export enum CoreEvents {
 }
 
 export interface MetricEvents<M extends Metric<any, any> = Metric<any, any>> {
-  [CoreEvents.stop]: M;
-  [CoreEvents.start]: M;
-  [CoreEvents.reset]: M;
+  stop: M;
+  start: M;
+  reset: M;
 }
 
-export type PluginTable = Record<string, Plugin | typeof Plugin>;
-
-export type RegisteredPlugins<T extends PluginTable> = {
-  [K in Extract<keyof T, string>]: T[K] extends typeof Plugin
-    ? InstanceType<T[K]>
-    : T[K];
-};
+export type PluginTable = Record<string, Plugin>;
