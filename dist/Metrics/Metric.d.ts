@@ -51,5 +51,10 @@ export declare class Metric<T extends MetricEvents = MetricEvents, P extends Plu
      * back to their original state. Emits the Metric's `reset` event
      */
     reset(): void;
-    private register;
+    /**
+     * Register Plugins
+     *
+     * Instantiates each plugin specified
+     */
+    private registerPlugins;
 }

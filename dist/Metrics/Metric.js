@@ -34,7 +34,7 @@ class Metric extends event_emitter_1.EventEmitter {
         this.events = types_1.CoreEvents;
         this.name = name;
         this.plugins = plugins;
-        this.register();
+        this.registerPlugins();
     }
     /**
      * Start
@@ -78,7 +78,12 @@ class Metric extends event_emitter_1.EventEmitter {
         this.status = types_1.Status.idol;
         this.emit(types_1.CoreEvents.reset, this);
     }
-    register() {
+    /**
+     * Register Plugins
+     *
+     * Instantiates each plugin specified
+     */
+    registerPlugins() {
         for (const key in this.plugins) {
             this.plugins[key].register(this);
         }

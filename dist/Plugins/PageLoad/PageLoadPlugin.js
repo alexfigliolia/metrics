@@ -24,7 +24,6 @@ class PageLoadPlugin extends Plugin_1.Plugin {
         this.initialLoad = false;
     }
     register(metric) {
-        console.log("ENABLED - REGISTER", PageLoadPlugin.enabled);
         if (!PageLoadPlugin.enabled) {
             console.warn("Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the PageLoadPlugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle");
         }
@@ -78,7 +77,6 @@ class PageLoadPlugin extends Plugin_1.Plugin {
             this.transitionID++;
         });
         this.enabled = true;
-        console.log("ENABLED", PageLoadPlugin.enabled);
     }
     /**
      * Set Timing
