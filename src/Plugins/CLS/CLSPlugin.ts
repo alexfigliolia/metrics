@@ -2,6 +2,20 @@ import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
 import type { Layout, LayoutShift } from "./types";
 
+/**
+ * CLS Plugin
+ *
+ * A plugin for tracking layout shifts associated with a given metric.
+ * By providing this plugin with a DOM selector, it'll track and record
+ * the position of the element between `start()` and `stop()` calls. If
+ * layout shifts are detected, they'll be available on the plugin instance
+ *
+ * ```typescript
+ * const metric = new Metric("My Metric", {
+ *   CLS: new CLSPlugin(".my-ui-element")
+ * });
+ * ```
+ */
 export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
   private name = "";
   public selector: string;
@@ -29,30 +43,54 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
     super.register(metric);
   }
 
-  public override start() {
+  /**
+   * Start
+   *
+   * Records the target elements's `boundClientRect`
+   */
+  protected override start() {
     const element = this.querySelector();
     if (element) {
       this.initialLayout = element.getBoundingClientRect();
     }
   }
 
-  public override stop(metric: T) {
-    const element = this.querySelector();
-    if (element) {
-      this.detectLayoutShift(element, metric.stopTime);
-    }
+  /**
+   * Stop
+   *
+   * Records the target elements's `boundClientRect` and compares
+   * it to the element's initial layout position
+   */
+  protected override stop(metric: T) {
+    this.inspect(metric.stopTime);
   }
 
-  public override reset() {
+  /**
+   * Reset
+   *
+   * Resets all recorded layout positions and shifts
+   */
+  protected override reset() {
     this.layoutShifts = [];
     this.initialLayout = CLSPlugin.DOMRect;
   }
 
+  /**
+   * Inspect
+   *
+   * Records the position of the target element and compares to the
+   * element's initial position
+   */
   public inspect(time = performance.now()) {
     const element = this.querySelector();
     this.detectLayoutShift(element, time);
   }
 
+  /**
+   * Query Selector
+   *
+   * Queries the DOM for the provided selector and returns the result
+   */
   private querySelector() {
     const element = document.querySelector(this.selector);
     if (!element && Plugin.IS_DEV) {
@@ -69,6 +107,14 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
     return element;
   }
 
+  /**
+   * Detect Layout Shift
+   *
+   * Calls the target element's `boundingClientRect()` method and
+   * compares each position to the element's initial layout position.
+   * If a shift is detected, a shift object is pushed to the instance's
+   * `layoutShifts` property
+   */
   private detectLayoutShift(element: Element | null, time: number) {
     if (!element) {
       return;
@@ -92,6 +138,11 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
     }
   }
 
+  /**
+   * Initial Layout
+   *
+   * A zero'd out `DOMRect` object
+   */
   private static readonly initialLayout = {
     x: 0,
     y: 0,
@@ -103,6 +154,11 @@ export class CLSPlugin<T extends Metric<any, any>> extends Plugin<T> {
     width: 0,
   };
 
+  /**
+   * DOM Rect
+   *
+   * A zero'd out `DOMRect` object
+   */
   private static readonly DOMRect: DOMRect = {
     ...this.initialLayout,
     toJSON: () => this.initialLayout,

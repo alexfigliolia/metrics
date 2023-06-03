@@ -2,6 +2,22 @@ import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
 import { Cache } from "./Cache";
 
+/**
+ * Critical Resource Plugin
+ *
+ * A plugin designed to record Critical Path and cache attributes
+ * for a given metric. This plugin accepts a list of file extensions
+ * and returns the underlying weight of collective resources required
+ * to serve the metric to the browser. The aforementioned resources
+ * are then calculated against any cache-hits producing a cache-
+ * rate percentage
+ *
+ * ```typescript
+ * const metric = new Metric("My Metric", {
+ *   resources: new CriticalResourcePlugin("js", "css")
+ * });
+ * ```
+ */
 export class CriticalResourcePlugin<
   T extends Metric<any, any>
 > extends Plugin<T> {
@@ -16,11 +32,23 @@ export class CriticalResourcePlugin<
     this.extensions = new Set(extensions);
   }
 
+  /**
+   * Reset
+   *
+   * Resets the Metric's `cacheRate` and `criticalSize` back
+   * to zero
+   */
   public override reset() {
     this.cacheRate = 0;
     this.criticalSize = 0;
   }
 
+  /**
+   * Stop
+   *
+   * Records the `criticalSize` and `cacheRate` of resources loaded
+   * between the Metric's `start()` and `stop()` events
+   */
   public override stop({ startTime, stopTime }: T) {
     const { cacheRate, criticalSize } = this.iterateResources(
       startTime,
@@ -30,6 +58,13 @@ export class CriticalResourcePlugin<
     this.criticalSize = criticalSize;
   }
 
+  /**
+   * Iterate Resources
+   *
+   * Filters all loaded resources for those loaded within the
+   * duration of the metric. Computes the total size (`criticalSize`)
+   * and `cacheRate`
+   */
   private iterateResources = CriticalResourcePlugin.Cache.withCache(
     (startTime: number, stopTime: number) => {
       if (!this.browserSupport) {
@@ -61,6 +96,11 @@ export class CriticalResourcePlugin<
     }
   );
 
+  /**
+   * Parse Extension
+   *
+   * Returns a file extension associated with a given resource
+   */
   private parseExtension(url: string) {
     try {
       return url?.split(/[#?]/)?.[0]?.split(".")?.pop()?.trim() || "";

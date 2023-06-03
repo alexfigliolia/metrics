@@ -4,8 +4,9 @@ import type { Metric } from "Metrics/Metric";
 
 export type WithReporter<
   T extends PluginTable = PluginTable,
-  M extends Metric<any, any> = Metric<any, any>,
-  C extends Record<string, any> = Record<string, any>
+  M extends Metric<any, any> = Metric<any, any>
 > = T & {
-  reporter?: ReporterPlugin<M, C>;
+  reporter?: ReporterPlugin<M>;
 };
+
+export type RequestFormatter<T> = (metrics: T[]) => XMLHttpRequestBodyInit;

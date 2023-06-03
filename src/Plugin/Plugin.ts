@@ -1,13 +1,41 @@
 import type { Metric } from "Metrics/Metric";
 
+/**
+ * Plugin
+ *
+ * The `Plugin` interface allows developers to compose custom
+ * functionality for their `Metrics`
+ *
+ * ```typescript
+ * class LoggerPlugin<T extends Metric> extends Plugin<T> {
+ *   protected override start(metric: T) {
+ *     console.log(metric.name, "Started!")
+ *   }
+ *
+ *   protected override stop(metric: T) {
+ *     console.log(metric.name, "Stopped!")
+ *   }
+ * }
+ *
+ *
+ * const myMetric = new Metric("My Metric", { logger: LoggerPlugin });
+ * ```
+ */
 export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
   protected registered = false;
+  protected static IS_DEV = process?.env?.NODE_ENV === "development";
   constructor(metric?: T) {
     if (metric) {
       this.register(metric);
     }
   }
 
+  /**
+   * Register
+   *
+   * Binds a plugin to the provided Metric. Plugins are bound using the
+   * Metric's underlying event emitter.
+   */
   public register(metric: T) {
     if (this.registered && Plugin.IS_DEV) {
       console.warn(
@@ -25,19 +53,48 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
     });
   }
 
-  protected validateEvent(event: string, metric: T): event is keyof Plugin<T> {
+  /**
+   * Validate Event
+   *
+   * Returns true if a constructor method on an extending class is
+   * a valid event emitted by the underlying metric
+   */
+  private validateEvent(event: string, metric: T): event is keyof Plugin<T> {
     return event in metric.events && event !== "constructor";
   }
 
-  public start(metric: T) {}
+  /**
+   * Start
+   *
+   * An event emitted each time the provided metric calls `start()`
+   */
+  protected start(metric: T) {}
 
-  public stop(metric: T) {}
+  /**
+   * Stop
+   *
+   * An event emitted each time the provided metric calls `stop()`
+   */
+  protected stop(metric: T) {}
 
-  public reset(metric: T) {}
+  /**
+   * Reset
+   *
+   * An event emitted each time the provided metric calls `reset()`
+   */
+  protected reset(metric: T) {}
 
-  public success(metric: T) {}
+  /**
+   * Success
+   *
+   * An event emitted each time the provided metric calls `succeed()`
+   */
+  protected success(metric: T) {}
 
-  public failure(metric: T) {}
-
-  public static IS_DEV = process?.env?.NODE_ENV === "development";
+  /**
+   * Failure
+   *
+   * An event emitted each time the provided metric calls `fail()`
+   */
+  protected failure(metric: T) {}
 }

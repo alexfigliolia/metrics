@@ -1,34 +1,72 @@
 import { Beaconer } from "beaconer";
+import type { RequestFormatter } from "./types";
+import type { Metric } from "Metrics/Metric";
 
-export class ProcessingQueue<T, C extends Record<string, any>> {
+/**
+ * Processing Queue
+ *
+ * A scheduler for sending batches of metrics to a provided
+ * destination
+ *
+ * ```typescript
+ * import { ProcessingQueue } from "@figliolia/metrics";
+ *
+ * const Queue = new ProcessingQueue("https://my-analytics-service", metrics => {
+ *   // optionally format outgoing data
+ *   return JSON.stringify(metrics);
+ * });
+ * ```
+ */
+export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   public url: string;
   public queue: T[] = [];
-  public requestData: Record<string, any>;
+  public formatRequest: RequestFormatter<T>;
   private scheduler: null | ReturnType<typeof setTimeout> = null;
-  constructor(url: string, requestData: C) {
+  constructor(
+    url: string,
+    formatRequest: RequestFormatter<T> = ProcessingQueue.defaultFormatter
+  ) {
     this.url = url;
-    this.requestData = requestData;
+    this.formatRequest = formatRequest;
     this.listenForSessionEnd = this.listenForSessionEnd.bind(this);
   }
 
+  /**
+   * Enqueue
+   *
+   * Adds an item to the queue and schedules its request to the provided
+   * destination
+   */
   public enqueue(item: T) {
     this.queue.push(item);
     return this.schedule();
   }
 
+  /**
+   * Beacon
+   *
+   * Sends a request with the currently enqueued items to the server.
+   * Resets the queue.
+   */
   private async beacon() {
     this.cancel();
+    if (!this.queue.length) {
+      return true;
+    }
     const success = await Beaconer.send(
       this.url,
-      JSON.stringify({
-        metrics: this.queue,
-        config: this.requestData,
-      })
+      this.formatRequest(this.queue)
     );
     this.queue = [];
     return success;
   }
 
+  /**
+   * Schedule
+   *
+   * Schedules a request to the provided destination containing the
+   * currently enqueued items
+   */
   private schedule() {
     this.cancel();
     return new Promise<boolean>((resolve) => {
@@ -39,6 +77,11 @@ export class ProcessingQueue<T, C extends Record<string, any>> {
     });
   }
 
+  /**
+   * Cancel
+   *
+   * Cancels a currently scheduled request
+   */
   private cancel() {
     if (this.scheduler) {
       clearTimeout(this.scheduler);
@@ -50,9 +93,25 @@ export class ProcessingQueue<T, C extends Record<string, any>> {
     }
   }
 
+  /**
+   * Listen For Session End
+   *
+   * If the document is ever moved to the background or closed, a request is
+   * immediately sent to the provided destination containing the contents of
+   * the queue
+   */
   private listenForSessionEnd() {
     if (document.visibilityState === "hidden") {
       void this.beacon();
     }
+  }
+
+  /**
+   * Default Formatter
+   *
+   * Returns a stringified queue
+   */
+  private static defaultFormatter(items: any[]) {
+    return JSON.stringify(items);
   }
 }
