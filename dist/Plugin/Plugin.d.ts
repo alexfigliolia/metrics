@@ -22,7 +22,6 @@ import type { Metric } from "../Metrics/Metric";
  */
 export declare class Plugin<T extends Metric<any, any> = Metric<any, any>> {
     protected registered: boolean;
-    protected static IS_DEV: boolean;
     constructor(metric?: T);
     /**
      * Register

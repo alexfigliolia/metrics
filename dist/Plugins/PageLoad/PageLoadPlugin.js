@@ -22,7 +22,7 @@ class PageLoadPlugin extends Plugin_1.Plugin {
         super(metric);
         this.transition = false;
         this.initialLoad = false;
-        if (Plugin_1.Plugin.IS_DEV && !PageLoadPlugin.enabled) {
+        if (!PageLoadPlugin.enabled) {
             console.warn("Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the PageLoadPlugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle");
         }
     }
@@ -57,7 +57,7 @@ class PageLoadPlugin extends Plugin_1.Plugin {
         if (this.enabled) {
             return;
         }
-        if (Plugin_1.Plugin.IS_DEV && !PageLoadPlugin.compatible) {
+        if (!PageLoadPlugin.compatible) {
             console.warn("The current environment does not support the History API. Please provide a polyfill such as History.js so that your metrics are consistent in legacy browsers. If you're seeing this warning on the server, you can ignore it.");
             return;
         }

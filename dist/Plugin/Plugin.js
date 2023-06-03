@@ -1,5 +1,4 @@
 "use strict";
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Plugin = void 0;
 /**
@@ -37,7 +36,7 @@ class Plugin {
      * Metric's underlying event emitter.
      */
     register(metric) {
-        if (this.registered && Plugin.IS_DEV) {
+        if (this.registered) {
             console.warn(`The plugin ${this.constructor.name} was registered on ${metric.name} more than once. Registering plugins is only necessary a single time`);
             return;
         }
@@ -91,4 +90,3 @@ class Plugin {
     failure(metric) { }
 }
 exports.Plugin = Plugin;
-Plugin.IS_DEV = ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.NODE_ENV) === "development";

@@ -23,7 +23,6 @@ import type { Metric } from "Metrics/Metric";
  */
 export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
   protected registered = false;
-  protected static IS_DEV = process?.env?.NODE_ENV === "development";
   constructor(metric?: T) {
     if (metric) {
       this.register(metric);
@@ -37,7 +36,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
    * Metric's underlying event emitter.
    */
   public register(metric: T) {
-    if (this.registered && Plugin.IS_DEV) {
+    if (this.registered) {
       console.warn(
         `The plugin ${this.constructor.name} was registered on ${metric.name} more than once. Registering plugins is only necessary a single time`
       );

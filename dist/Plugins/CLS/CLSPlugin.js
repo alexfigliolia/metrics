@@ -77,7 +77,7 @@ class CLSPlugin extends Plugin_1.Plugin {
      */
     querySelector() {
         const element = document.querySelector(this.selector);
-        if (!element && Plugin_1.Plugin.IS_DEV) {
+        if (!element) {
             if (this.initialLayout === CLSPlugin.DOMRect) {
                 console.warn(`CLS Plugin ${this.name}: A DOM element with the selector "${this.selector}" was not found`);
             }
