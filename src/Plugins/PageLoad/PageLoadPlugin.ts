@@ -24,7 +24,6 @@ export class PageLoadPlugin<
   public initialLoad = false;
   public browserSupport = false;
   public static enabled = false;
-  public static transitionID = -1;
   private static compatible = typeof window !== undefined && !!window.history;
   constructor() {
     super();
@@ -48,7 +47,7 @@ export class PageLoadPlugin<
    */
   protected override start(metric: T) {
     metric.startTime = PageLoadPlugin.timing;
-    this.transition = PageLoadPlugin.timing === 0;
+    this.transition = PageLoadPlugin.timing !== 0;
     this.initialLoad = !this.transition;
   }
 
@@ -72,26 +71,18 @@ export class PageLoadPlugin<
    * browser's most recent navigation
    */
   public static enable() {
-    if (this.enabled) {
+    if (this.enabled || !PageLoadPlugin.compatible) {
       return;
     }
-    if (!PageLoadPlugin.compatible) {
-      console.warn(
-        "The current environment does not support the History API. Please provide a polyfill such as History.js so that your metrics are consistent in legacy browsers. If you're seeing this warning on the server, you can ignore it."
-      );
-      return;
-    }
+    this.enabled = true;
     const { pushState } = history;
     history.pushState = (...args: Parameters<typeof history.pushState>) => {
       this.setTiming();
-      this.transitionID++;
       return pushState.apply(history, args);
     };
     window.addEventListener("popstate", () => {
       this.setTiming();
-      this.transitionID++;
     });
-    this.enabled = true;
   }
 
   /**

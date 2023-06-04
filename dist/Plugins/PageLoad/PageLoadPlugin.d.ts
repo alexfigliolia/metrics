@@ -21,7 +21,6 @@ export declare class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any
     initialLoad: boolean;
     browserSupport: boolean;
     static enabled: boolean;
-    static transitionID: number;
     private static compatible;
     constructor();
     register(metric: T): void;
