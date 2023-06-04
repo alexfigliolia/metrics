@@ -19,9 +19,11 @@ const Plugin_1 = require("../../Plugin/Plugin");
  */
 class PageLoadPlugin extends Plugin_1.Plugin {
     constructor() {
-        super(...arguments);
+        super();
         this.transition = false;
         this.initialLoad = false;
+        this.browserSupport = false;
+        this.browserSupport = PageLoadPlugin.compatible;
     }
     register(metric) {
         if (!PageLoadPlugin.enabled) {
@@ -91,4 +93,4 @@ exports.PageLoadPlugin = PageLoadPlugin;
 PageLoadPlugin.timing = 0;
 PageLoadPlugin.enabled = false;
 PageLoadPlugin.transitionID = -1;
-PageLoadPlugin.compatible = window && window.history;
+PageLoadPlugin.compatible = typeof window !== undefined && !!window.history;

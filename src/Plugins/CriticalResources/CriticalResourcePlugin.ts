@@ -25,7 +25,8 @@ export class CriticalResourcePlugin<
   public criticalSize = 0;
   public extensions: Set<string>;
   private static Cache = new Cache();
-  private static browserSupport = "performance" in window;
+  private static browserSupport =
+    typeof window !== undefined && "performance" in window;
   public browserSupport = CriticalResourcePlugin.browserSupport;
   constructor(extensions: string[] = ["js", "css"]) {
     super();

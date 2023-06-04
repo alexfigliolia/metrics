@@ -22,9 +22,14 @@ export class PageLoadPlugin<
   public static timing = 0;
   public transition = false;
   public initialLoad = false;
+  public browserSupport = false;
   public static enabled = false;
   public static transitionID = -1;
-  private static compatible = window && window.history;
+  private static compatible = typeof window !== undefined && !!window.history;
+  constructor() {
+    super();
+    this.browserSupport = PageLoadPlugin.compatible;
+  }
 
   public override register(metric: T) {
     if (!PageLoadPlugin.enabled) {

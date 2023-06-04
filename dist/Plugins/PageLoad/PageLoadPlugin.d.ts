@@ -19,9 +19,11 @@ export declare class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any
     static timing: number;
     transition: boolean;
     initialLoad: boolean;
+    browserSupport: boolean;
     static enabled: boolean;
     static transitionID: number;
     private static compatible;
+    constructor();
     register(metric: T): void;
     /**
      * Start

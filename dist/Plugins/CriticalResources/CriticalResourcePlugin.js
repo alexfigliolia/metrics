@@ -97,4 +97,4 @@ class CriticalResourcePlugin extends Plugin_1.Plugin {
 }
 exports.CriticalResourcePlugin = CriticalResourcePlugin;
 CriticalResourcePlugin.Cache = new Cache_1.Cache();
-CriticalResourcePlugin.browserSupport = "performance" in window;
+CriticalResourcePlugin.browserSupport = typeof window !== undefined && "performance" in window;
