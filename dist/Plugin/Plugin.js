@@ -40,11 +40,9 @@ class Plugin {
         this.registered = true;
         const extension = Object.getPrototypeOf(this);
         const methods = Object.getOwnPropertyNames(extension);
-        console.log("REGISTERING", this);
-        console.log("METHODS", methods, extension);
         methods.forEach((event) => {
             if (this.validateEvent(event, metric)) {
-                metric.on(event, this[event].bind(this));
+                metric.on(event, this[event]);
             }
         });
     }

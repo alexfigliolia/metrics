@@ -39,7 +39,7 @@ class PageLoadPlugin extends Plugin_1.Plugin {
      */
     start(metric) {
         metric.startTime = PageLoadPlugin.timing;
-        this.transition = PageLoadPlugin.timing === 0;
+        this.transition = PageLoadPlugin.timing !== 0;
         this.initialLoad = !this.transition;
     }
     /**
