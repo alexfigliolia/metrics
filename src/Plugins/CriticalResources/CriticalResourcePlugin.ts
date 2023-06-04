@@ -1,6 +1,5 @@
 import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
-import { Cache } from "./Cache";
 
 /**
  * Critical Resource Plugin
@@ -24,7 +23,6 @@ export class CriticalResourcePlugin<
   public cacheRate = 0;
   public criticalSize = 0;
   public extensions: Set<string>;
-  private static Cache = new Cache();
   private static browserSupport =
     typeof window !== undefined && "performance" in window;
   public browserSupport = CriticalResourcePlugin.browserSupport;
@@ -66,36 +64,34 @@ export class CriticalResourcePlugin<
    * duration of the metric. Computes the total size (`criticalSize`)
    * and `cacheRate`
    */
-  private iterateResources = CriticalResourcePlugin.Cache.withCache(
-    (startTime: number, stopTime: number) => {
-      if (!this.browserSupport) {
-        return { cacheRate: 0, criticalSize: 0 };
-      }
-      let cachedSize = 0;
-      let criticalSize = 0;
-      const resources = performance.getEntriesByType(
-        "resource"
-      ) as PerformanceResourceTiming[];
-      for (const resource of resources) {
-        const { name, fetchStart, responseEnd, transferSize, decodedBodySize } =
-          resource;
-        if (fetchStart < startTime || responseEnd > stopTime) {
-          continue;
-        }
-        if (!this.extensions.has(this.parseExtension(name))) {
-          continue;
-        }
-        criticalSize += decodedBodySize;
-        if (transferSize === 0) {
-          cachedSize += decodedBodySize;
-        }
-      }
-      return {
-        criticalSize,
-        cacheRate: (cachedSize / criticalSize) * 100,
-      };
+  private iterateResources(startTime: number, stopTime: number) {
+    if (!this.browserSupport) {
+      return { cacheRate: 0, criticalSize: 0 };
     }
-  );
+    let cachedSize = 0;
+    let criticalSize = 0;
+    const resources = performance.getEntriesByType(
+      "resource"
+    ) as PerformanceResourceTiming[];
+    for (const resource of resources) {
+      const { name, fetchStart, responseEnd, transferSize, decodedBodySize } =
+        resource;
+      if (fetchStart < startTime || responseEnd > stopTime) {
+        continue;
+      }
+      if (!this.extensions.has(this.parseExtension(name))) {
+        continue;
+      }
+      criticalSize += decodedBodySize;
+      if (transferSize === 0) {
+        cachedSize += decodedBodySize;
+      }
+    }
+    return {
+      criticalSize,
+      cacheRate: (cachedSize / criticalSize) * 100,
+    };
+  }
 
   /**
    * Parse Extension

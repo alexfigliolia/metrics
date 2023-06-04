@@ -39,9 +39,7 @@ export class CLSPlugin<
   }
 
   public override register(metric: T) {
-    if (!this.registered) {
-      this.name = metric.name;
-    }
+    this.name = metric.name;
     super.register(metric);
   }
 
@@ -98,11 +96,11 @@ export class CLSPlugin<
     if (!element) {
       if (this.initialLayout === CLSPlugin.DOMRect) {
         console.warn(
-          `CLS Plugin ${this.name}: A DOM element with the selector "${this.selector}" was not found`
+          `${this.name}: CLSPlugin error - A DOM element with the selector "${this.selector}" was not found`
         );
       } else {
         console.warn(
-          `CLS Plugin ${this.name}: The element corresponding to the selector "${this.selector}" has been removed from the DOM`
+          `${this.name}: CLSPlugin error - The element corresponding to the selector "${this.selector}" has been removed from the DOM`
         );
       }
     }

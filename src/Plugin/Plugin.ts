@@ -22,7 +22,7 @@ import type { Metric } from "Metrics/Metric";
  * ```
  */
 export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
-  protected registered = false;
+  private registered = false;
 
   /**
    * Register
@@ -33,7 +33,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
   public register(metric: T) {
     if (this.registered) {
       console.warn(
-        `The plugin ${this.constructor.name} was registered on ${metric.name} more than once. Registering plugins is only necessary a single time`
+        `${metric.name}: The plugin ${this.constructor.name} was registered more than once. Registering plugins is only necessary a single time`
       );
       return;
     }

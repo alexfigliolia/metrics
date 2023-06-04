@@ -28,6 +28,10 @@
   ],
   "author": "Alex Figliolia",
   "license": "MIT",
+  "dependencies": {
+    "@figliolia/event-emitter": "^1.0.7",
+    "beaconer": "^1.0.0"
+  },
   "devDependencies": {
     "@types/node": "^16.7.13",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
@@ -47,9 +51,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "dependencies": {
-    "@figliolia/event-emitter": "^1.0.7",
-    "beaconer": "^1.0.0"
   }
 }

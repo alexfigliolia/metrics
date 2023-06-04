@@ -33,7 +33,7 @@ export class PageLoadPlugin<
   public override register(metric: T) {
     if (!PageLoadPlugin.enabled) {
       console.warn(
-        "Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the PageLoadPlugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle"
+        `${metric.name}: PageLoadPlugin - Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the plugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle`
       );
     }
     super.register(metric);
