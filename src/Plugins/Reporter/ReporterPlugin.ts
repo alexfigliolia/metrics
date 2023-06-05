@@ -22,11 +22,11 @@ import type { ProcessingQueue } from "./ProcessingQueue";
  *
  * class ReportedMetric<
  *   T extends MetricEvents = MetricEvents,
- *   P extends WithReporter<PluginTable> = WithReporter<PluginTable>
- * > extends Metric<T, P> {
+ *   P extends PluginTable = PluginTable
+ * > extends Metric<T, WithReporter<PluginTable>> {
  *  // only one ProcessingQueue is necessary per application or analytics service
  *   private static Queue = new ProcessingQueue("https://my-analytics-service.com");
- *   constructor(name: string, plugins: P = {} as P) {
+ *   constructor(name: string, plugins: P = {} as WithReporter<PluginTable>) {
  *     plugins.reporter = new new ReporterPlugin(ReportedMetric.Queue);
  *     super(name, plugins);
  *   }
@@ -39,7 +39,7 @@ import type { ProcessingQueue } from "./ProcessingQueue";
 export class ReporterPlugin<
   T extends Metric<any, any> = Metric<any, any>
 > extends Plugin<T> {
-  protected processor: ProcessingQueue<T>;
+  private processor: ProcessingQueue<T>;
   constructor(processor: ProcessingQueue<T>) {
     super();
     this.processor = processor;
@@ -53,5 +53,15 @@ export class ReporterPlugin<
    */
   protected override stop(metric: T) {
     void this.processor.enqueue(metric);
+  }
+
+  /**
+   * To JSON
+   *
+   * Modifies the return value of the `PageLoadPlugin` interface when passed
+   * to `JSON.stringify`
+   */
+  public override toJSON() {
+    return {};
   }
 }

@@ -1,4 +1,5 @@
 import type { Metric } from "Metrics/Metric";
+import type { PluginEvent } from "./types";
 
 /**
  * Plugin
@@ -42,7 +43,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
     const methods = Object.getOwnPropertyNames(extension);
     methods.forEach((event) => {
       if (this.validateEvent(event, metric)) {
-        metric.on(event, this[event]);
+        metric.on(event, this[event].bind(this));
       }
     });
   }
@@ -53,7 +54,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
    * Returns true if a constructor method on an extending class is
    * a valid event emitted by the underlying metric
    */
-  private validateEvent(event: string, metric: T): event is keyof Plugin<T> {
+  private validateEvent(event: string, metric: T): event is PluginEvent {
     return event in metric.events && event !== "constructor";
   }
 
@@ -91,4 +92,14 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
    * An event emitted each time the provided metric calls `fail()`
    */
   protected failure(metric: T) {}
+
+  /**
+   * To JSON
+   *
+   * Modifies the return value of the `Plugin` interface when passed
+   * to `JSON.stringify`
+   */
+  protected toJSON() {
+    return {};
+  }
 }

@@ -44,7 +44,7 @@ export class InteractionMetric<
   public data?: S | F;
   public failed = false;
   public succeeded = false;
-  public readonly events = { ...CoreEvents, ...ReliabilityEvents };
+  public static readonly events = { ...CoreEvents, ...ReliabilityEvents };
 
   /**
    * Succeed
@@ -59,7 +59,7 @@ export class InteractionMetric<
     this.failed = false;
     this.succeeded = true;
     super.stop(stopTime);
-    this.emit(ReliabilityEvents.success, this);
+    this.emitter.emit(ReliabilityEvents.success, this);
   }
 
   /**
@@ -70,12 +70,12 @@ export class InteractionMetric<
    * arbitrary data to associate with the status of the Metric.
    * Emits the Metric's `failure` and `stop` events
    */
-  public fail(data: F, stopTime = performance.now()) {
+  public fail(data?: F, stopTime = performance.now()) {
     this.data = data;
     this.failed = true;
     this.succeeded = false;
     super.stop(stopTime, Status.failed);
-    this.emit(ReliabilityEvents.failure, this);
+    this.emitter.emit(ReliabilityEvents.failure, this);
   }
 
   /**
@@ -89,5 +89,14 @@ export class InteractionMetric<
     this.data = undefined;
     this.succeeded = false;
     super.reset();
+  }
+
+  /**
+   * Events
+   *
+   * Returns `CoreEvents` with extension for `success` and `failure` events
+   */
+  public override get events() {
+    return InteractionMetric.events;
   }
 }

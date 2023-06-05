@@ -25,16 +25,15 @@ import type { MetricEvents, PluginTable } from "./types";
 export class Metric<
   T extends MetricEvents = MetricEvents,
   P extends PluginTable = PluginTable
-> extends EventEmitter<T> {
+> {
   public name: string;
   public stopTime = 0;
   public startTime = 0;
   public duration = 0;
   public plugins = {} as P;
   public status: Status = Status.idol;
-  public readonly events = CoreEvents;
+  protected readonly emitter = new EventEmitter<T>();
   constructor(name: string, plugins = {} as P) {
-    super();
     this.name = name;
     this.plugins = plugins;
     this.registerPlugins();
@@ -52,7 +51,7 @@ export class Metric<
     }
     this.startTime = time;
     this.status = Status.inProgress;
-    this.emit(CoreEvents.start, this);
+    this.emitter.emit(CoreEvents.start, this);
   }
 
   /**
@@ -68,7 +67,7 @@ export class Metric<
     this.stopTime = time;
     this.duration = this.stopTime - this.startTime;
     this.status = status;
-    this.emit(CoreEvents.stop, this);
+    this.emitter.emit(CoreEvents.stop, this);
   }
 
   /**
@@ -82,7 +81,27 @@ export class Metric<
     this.stopTime = 0;
     this.startTime = 0;
     this.status = Status.idol;
-    this.emit(CoreEvents.reset, this);
+    this.emitter.emit(CoreEvents.reset, this);
+  }
+
+  /**
+   * On
+   *
+   * Registers an event listener on the metric
+   */
+  public on<T extends Parameters<(typeof this.emitter)["on"]>>(...params: T) {
+    const [event, listener] = params;
+    return this.emitter.on(event, listener);
+  }
+
+  /**
+   * Off
+   *
+   * Removes an event listener from the metric
+   */
+  public off<T extends Parameters<(typeof this.emitter)["off"]>>(...params: T) {
+    const [event, ID] = params;
+    return this.emitter.off(event, ID);
   }
 
   /**
@@ -94,5 +113,33 @@ export class Metric<
     for (const key in this.plugins) {
       this.plugins[key].register(this);
     }
+  }
+
+  /**
+   * To JSON
+   *
+   * Returns all public mutable properties when passed into calls
+   * to `JSON.stringify`
+   */
+  public toJSON() {
+    return {
+      name: this.name,
+      startTime: this.startTime,
+      stopTime: this.stopTime,
+      duration: this.duration,
+      plugins: this.plugins,
+      status: this.status,
+    };
+  }
+
+  /**
+   * Events
+   *
+   * Returns each of the Metric's enumerated events. To extend
+   * the default available metrics, override this method in
+   * extending classes
+   */
+  public get events() {
+    return CoreEvents;
   }
 }

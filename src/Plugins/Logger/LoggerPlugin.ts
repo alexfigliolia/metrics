@@ -1,5 +1,8 @@
+import type { InteractionEvents } from "Interactions/types";
 import type { Metric } from "Metrics/Metric";
+import type { CoreEvents, MetricEvents } from "Metrics/types";
 import { Plugin } from "Plugin/Plugin";
+import type { PluginEvent } from "Plugin/types";
 
 /**
  * Logger Plugin
@@ -16,18 +19,20 @@ import { Plugin } from "Plugin/Plugin";
 export class LoggerPlugin<
   T extends Metric<any, any> = Metric<any, any>
 > extends Plugin<T> {
+  private events: Set<PluginEvent>;
+  constructor(
+    events: PluginEvent[] = ["start", "stop", "success", "failure", "reset"]
+  ) {
+    super();
+    this.events = new Set(events);
+  }
   /**
    * Start
    *
    * Logs the target Metric's `start` event
    */
   protected override start(metric: T) {
-    console.log(
-      `%c${metric.name}: %cStart`,
-      "color: rgb(93, 93, 93); font-weight: bold",
-      "color: rgb(255, 111, 0); font-weight: bold",
-      metric
-    );
+    this.log("start", "rgb(225, 35, 139)", metric);
   }
 
   /**
@@ -36,12 +41,7 @@ export class LoggerPlugin<
    * Logs the target Metric's `stop` event
    */
   protected override stop(metric: T) {
-    console.log(
-      `%c${metric.name}: %Stop`,
-      "color: rgb(93, 93, 93); font-weight: bold",
-      "color: rgb(29, 51, 255); font-weight: bold",
-      metric
-    );
+    this.log("stop", "rgb(29, 51, 255)", metric);
   }
 
   /**
@@ -50,12 +50,7 @@ export class LoggerPlugin<
    * Logs the target Metric's `success` event
    */
   protected override success(metric: T) {
-    console.log(
-      `%c${metric.name}: %Success`,
-      "color: rgb(93, 93, 93); font-weight: bold",
-      "color: #26ad65; font-weight: bold",
-      metric
-    );
+    this.log("success", "#26ad65", metric);
   }
 
   /**
@@ -64,12 +59,7 @@ export class LoggerPlugin<
    * Logs the target Metric's `failure` event
    */
   protected override failure(metric: T) {
-    console.log(
-      `%c${metric.name}: %Failure`,
-      "color: rgb(93, 93, 93); font-weight: bold",
-      "color: rgb(255, 43, 43); font-weight: bold",
-      metric
-    );
+    this.log("failure", "rgb(246, 52, 52)", metric);
   }
 
   /**
@@ -78,11 +68,38 @@ export class LoggerPlugin<
    * Logs the target Metric's `reset` event
    */
   protected override reset(metric: T) {
+    this.log("reset", "rgb(166, 166, 166)", metric);
+  }
+
+  /**
+   * Log
+   *
+   * Returns a logging callback that'll verify that the incoming
+   * event is white-listed by the constructor, then log the metric
+   */
+  private log(event: PluginEvent, color: string, metric: T) {
+    if (!this.events.has(event)) {
+      return;
+    }
     console.log(
-      `%c${metric.name}: %Reset`,
-      "color: rgb(93, 93, 93); font-weight: bold",
-      "color: rgb(166, 166, 166); font-weight: bold",
-      metric
+      "%cMetric:",
+      "color: rgb(187, 186, 186); font-weight: bold",
+      `${metric.name}:`
     );
+    console.log(
+      "   %c%s",
+      `color: ${color}; font-weight: bold`,
+      this.capitalize(event),
+      metric.toJSON()
+    );
+  }
+
+  /**
+   * Capitalize
+   *
+   * Returns a capitalized plugin event
+   */
+  private capitalize(event: PluginEvent) {
+    return `${event[0].toUpperCase()}${event.slice(1)}`;
   }
 }

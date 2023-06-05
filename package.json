@@ -30,7 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "@figliolia/event-emitter": "^1.0.7",
-    "beaconer": "^1.0.0"
+    "beaconer": "^1.0.1"
   },
   "devDependencies": {
     "@types/node": "^16.7.13",

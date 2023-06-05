@@ -1,5 +1,5 @@
 import { Beaconer } from "beaconer";
-import type { RequestFormatter } from "./types";
+import type { JSONMetric, RequestFormatter } from "./types";
 import type { Metric } from "Metrics/Metric";
 
 /**
@@ -19,12 +19,12 @@ import type { Metric } from "Metrics/Metric";
  */
 export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   public url: string;
-  public queue: T[] = [];
-  public formatRequest: RequestFormatter<T>;
+  public queue: JSONMetric[] = [];
+  public formatRequest: RequestFormatter;
   private scheduler: null | ReturnType<typeof setTimeout> = null;
   constructor(
     url: string,
-    formatRequest: RequestFormatter<T> = ProcessingQueue.defaultFormatter
+    formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter
   ) {
     this.url = url;
     this.formatRequest = formatRequest;
@@ -38,7 +38,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    * destination
    */
   public enqueue(item: T) {
-    this.queue.push(item);
+    this.queue.push(item.toJSON());
     return this.schedule();
   }
 

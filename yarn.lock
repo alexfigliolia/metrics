@@ -349,10 +349,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-beaconer@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/beaconer/-/beaconer-1.0.0.tgz#341c348feca827f369ac06ae6c758b80b1392bcd"
-  integrity sha512-MGvs6p8HPglvfT2+V6IY9bFa6Uc4eIhtA82HuukLL/Bo+Hr6c0hZCcdCAqa0LF/ulwjrGFZpaMeTQdzyOEsx9A==
+beaconer@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/beaconer/-/beaconer-1.0.1.tgz#45a15305c00206463c02eb7b4e56d41e1492243c"
+  integrity sha512-BrHmmJjf+lxmu8rVMVKpt9V7gtbnBYLBkDjOQ381Z0S65BnTWjR0zHF6iDTocKkx3duefLND9Wkt244VOeVklg==
 
 big-integer@^1.6.44:
   version "1.6.51"

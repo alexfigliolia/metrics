@@ -83,13 +83,13 @@ export class CriticalResourcePlugin<
         continue;
       }
       criticalSize += decodedBodySize;
-      if (transferSize === 0) {
+      if (transferSize === 0 && decodedBodySize > 0) {
         cachedSize += decodedBodySize;
       }
     }
     return {
       criticalSize,
-      cacheRate: (cachedSize / criticalSize) * 100,
+      cacheRate: criticalSize === 0 ? 100 : (cachedSize / criticalSize) * 100,
     };
   }
 
@@ -104,5 +104,20 @@ export class CriticalResourcePlugin<
     } catch (error) {
       return "";
     }
+  }
+
+  /**
+   * To JSON
+   *
+   * Modifies the return value of the `CriticalResourcePlugin` interface
+   * when passed to `JSON.stringify`
+   */
+  public override toJSON() {
+    return {
+      cacheRate: this.cacheRate,
+      criticalSize: this.criticalSize,
+      browserSupport: this.browserSupport,
+      extensions: Array.from(this.extensions),
+    };
   }
 }

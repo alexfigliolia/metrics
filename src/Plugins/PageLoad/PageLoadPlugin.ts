@@ -19,19 +19,21 @@ import { Plugin } from "Plugin/Plugin";
 export class PageLoadPlugin<
   T extends Metric<any, any> = Metric<any, any>
 > extends Plugin<T> {
-  public static timing = 0;
+  public native = false;
+  private static timing = 0;
   public transition = false;
   public initialLoad = false;
   public browserSupport = false;
-  public static enabled = false;
+  public static nativeEnabled = false;
   private static compatible = typeof window !== undefined && !!window.history;
-  constructor() {
+  constructor(native = false) {
     super();
-    this.browserSupport = PageLoadPlugin.compatible;
+    this.native = native;
+    this.browserSupport = PageLoadPlugin.compatible && native;
   }
 
   public override register(metric: T) {
-    if (!PageLoadPlugin.enabled) {
+    if (!PageLoadPlugin.nativeEnabled && this.native) {
       console.warn(
         `${metric.name}: PageLoadPlugin - Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the plugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle`
       );
@@ -71,10 +73,10 @@ export class PageLoadPlugin<
    * browser's most recent navigation
    */
   public static enable() {
-    if (this.enabled || !PageLoadPlugin.compatible) {
+    if (this.nativeEnabled || !PageLoadPlugin.compatible) {
       return;
     }
-    this.enabled = true;
+    this.nativeEnabled = true;
     const { pushState } = history;
     history.pushState = (...args: Parameters<typeof history.pushState>) => {
       this.setTiming();
@@ -90,7 +92,21 @@ export class PageLoadPlugin<
    *
    * Sets the plugin's `timing` property to a high-resolution timestamp
    */
-  private static setTiming() {
+  public static setTiming() {
     this.timing = performance.now();
+  }
+
+  /**
+   * To JSON
+   *
+   * Modifies the return value of the `PageLoadPlugin` interface when passed
+   * to `JSON.stringify`
+   */
+  public override toJSON() {
+    return {
+      transition: this.transition,
+      initialLoad: this.initialLoad,
+      browserSupport: this.browserSupport,
+    };
   }
 }

@@ -163,4 +163,17 @@ export class CLSPlugin<
     ...this.initialLayout,
     toJSON: () => this.initialLayout,
   };
+
+  /**
+   * To JSON
+   *
+   * Modifies the return value of the `CLSPlugin` interface when passed
+   * to `JSON.stringify`
+   */
+  public override toJSON() {
+    return {
+      selector: this.selector,
+      layoutShifts: this.layoutShifts,
+    };
+  }
 }

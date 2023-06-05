@@ -53,6 +53,7 @@ module.exports = {
 		"@typescript-eslint/no-unsafe-call": 0,
 		"@typescript-eslint/no-unused-vars": 0,
 		"@typescript-eslint/no-shadow": 0,
+		"@typescript-eslint/no-unused-vars": "off",
 		"@typescript-eslint/no-unnecessary-type-constraint": 0,
 		"@typescript-eslint/restrict-plus-operands": 0,
 		"@typescript-eslint/no-unsafe-assignment": 0,
