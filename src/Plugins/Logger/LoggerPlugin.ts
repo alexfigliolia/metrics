@@ -1,6 +1,4 @@
-import type { InteractionEvents } from "Interactions/types";
 import type { Metric } from "Metrics/Metric";
-import type { CoreEvents, MetricEvents } from "Metrics/types";
 import { Plugin } from "Plugin/Plugin";
 import type { PluginEvent } from "Plugin/types";
 

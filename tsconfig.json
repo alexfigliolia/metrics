@@ -28,6 +28,9 @@
 			"Experiences/*": [
 				"Experiences/*"
 			],
+			"Factories/*": [
+				"Factories/*"
+			],
 			"Interactions/*": [
 				"Interactions/*"
 			],
