@@ -5,7 +5,7 @@ import type { MetricEvents, PluginTable } from "./types";
 /**
  * Metric
  *
- * An extendable interface for tracking performance in your application
+ * An interface for tracking performance in your application
  *
  * ```typescript
  * const metric = new Metric("My Metric", { ...plugins });

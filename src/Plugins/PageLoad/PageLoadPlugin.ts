@@ -1,5 +1,6 @@
 import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
+import type { PageLoadJSON } from "./types";
 
 /**
  * Page Load Plugin
@@ -23,17 +24,16 @@ export class PageLoadPlugin<
   private static timing = 0;
   public transition = false;
   public initialLoad = false;
-  public browserSupport = false;
-  public static nativeEnabled = false;
-  private static compatible = typeof window !== undefined && !!window.history;
+  public static historyEnabled = false;
+  private static nativeCompatible =
+    typeof window !== undefined && !!window.history;
   constructor(native = false) {
     super();
     this.native = native;
-    this.browserSupport = PageLoadPlugin.compatible && native;
   }
 
   public override register(metric: T) {
-    if (!PageLoadPlugin.nativeEnabled && this.native) {
+    if (!PageLoadPlugin.historyEnabled && this.native) {
       console.warn(
         `${metric.name}: PageLoadPlugin - Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the plugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle`
       );
@@ -73,10 +73,10 @@ export class PageLoadPlugin<
    * browser's most recent navigation
    */
   public static enable() {
-    if (this.nativeEnabled || !PageLoadPlugin.compatible) {
+    if (this.historyEnabled || !PageLoadPlugin.nativeCompatible) {
       return;
     }
-    this.nativeEnabled = true;
+    this.historyEnabled = true;
     const { pushState } = history;
     history.pushState = (...args: Parameters<typeof history.pushState>) => {
       this.setTiming();
@@ -103,10 +103,15 @@ export class PageLoadPlugin<
    * to `JSON.stringify`
    */
   public override toJSON() {
-    return {
+    const properties: PageLoadJSON = {
       transition: this.transition,
       initialLoad: this.initialLoad,
-      browserSupport: this.browserSupport,
     };
+    if (this.native) {
+      properties.historyAPI = true;
+      properties.historyEnabled = PageLoadPlugin.historyEnabled;
+      properties.browserSupport = PageLoadPlugin.nativeCompatible;
+    }
+    return properties;
   }
 }

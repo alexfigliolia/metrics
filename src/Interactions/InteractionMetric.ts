@@ -7,18 +7,18 @@ import type { MetricEvents, PluginTable } from "Metrics/types";
 /**
  * Interaction Metric
  *
- * An extension of the `Metric` interface designed to track the
- * reliability of micro interactions
+ * An extension of the core `Metric` interface designed to track
+ * the reliability of micro interactions
  *
  * ```typescript
- * const myInteraction = new InteractionMetric("Sign Up");
+ * const MyInteraction = new InteractionMetric("Sign Up");
  *
- * async function onSubmitForm<T extends Record<string, string>>(data: T) {
+ * async function onSubmitForm(username: string, password: string) {
  *   myInteraction.start();
  *   try {
  *     await fetch({
  *       url: "/signup",
- *       data: JSON.stringify(data)
+ *       data: JSON.stringify({ username, password })
  *     });
  *     await redirectToHome();
  *     myInteraction.succeed()
@@ -49,10 +49,10 @@ export class InteractionMetric<
   /**
    * Succeed
    *
-   * Records a stop time, duration, and moves your metric's status
-   * to `complete`. This method can also be supplied when any
-   * arbitrary data to associate with the status of the Metric.
-   * Emits the Metric's `success` and `stop` events
+   * Records a stop time, a duration, and moves your metric's
+   * status to `complete`. This method can also be supplied with
+   * any arbitrary data to associate with the status of the
+   * Metric. Emits the Metric's `success` and `stop` events
    */
   public succeed(data?: S, stopTime: number = performance.now()) {
     this.data = data;
@@ -65,9 +65,9 @@ export class InteractionMetric<
   /**
    * Fail
    *
-   * Records a stop time, duration, and moves your metric's status
-   * to `failed`. This method can also be supplied when any
-   * arbitrary data to associate with the status of the Metric.
+   * Records a stop time, a duration, and moves your metric's
+   * status to `failed`. This method can also be supplied with
+   * any arbitrary data to associate with the status of the Metric.
    * Emits the Metric's `failure` and `stop` events
    */
   public fail(data?: F, stopTime = performance.now()) {

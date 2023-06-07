@@ -22,7 +22,7 @@ export class CLSPlugin<
   private name = "";
   public selector: string;
   public layoutShifts: LayoutShift[] = [];
-  public initialLayout: DOMRect = CLSPlugin.DOMRect;
+  public initialLayout: Layout = CLSPlugin.DOMRect;
   private static readonly measures = [
     "x",
     "y",
@@ -51,7 +51,7 @@ export class CLSPlugin<
   protected override start() {
     const element = this.querySelector();
     if (element) {
-      this.initialLayout = element.getBoundingClientRect();
+      this.initialLayout = this.fromBody(element);
     }
   }
 
@@ -120,7 +120,7 @@ export class CLSPlugin<
       return;
     }
     let shifted = false;
-    const nextLayout = element.getBoundingClientRect();
+    const nextLayout = this.fromBody(element);
     const layoutShift: Partial<Layout> = {};
     for (const key of CLSPlugin.measures) {
       const currentValue = nextLayout[key];
@@ -139,11 +139,31 @@ export class CLSPlugin<
   }
 
   /**
+   * From Body
+   *
+   * Returns the coordinates of the target element relative
+   * to the body
+   */
+  private fromBody(element: Element) {
+    const position = element.getBoundingClientRect();
+    const body = document.body.getBoundingClientRect();
+    const layout = {} as Layout;
+    for (const key of CLSPlugin.measures) {
+      if (key === "height" || key === "width") {
+        layout[key] = position[key];
+      } else {
+        layout[key] = position[key] - body[key];
+      }
+    }
+    return layout;
+  }
+
+  /**
    * Initial Layout
    *
    * A zero'd out `DOMRect` object
    */
-  private static readonly initialLayout = {
+  private static readonly DOMRect = {
     x: 0,
     y: 0,
     top: 0,
@@ -152,16 +172,6 @@ export class CLSPlugin<
     bottom: 0,
     height: 0,
     width: 0,
-  };
-
-  /**
-   * DOM Rect
-   *
-   * A zero'd out `DOMRect` object
-   */
-  private static readonly DOMRect: DOMRect = {
-    ...this.initialLayout,
-    toJSON: () => this.initialLayout,
   };
 
   /**

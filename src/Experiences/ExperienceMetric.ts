@@ -11,9 +11,10 @@ import type { MetricEvents, PluginTable } from "Metrics/types";
  * child metrics
  *
  * ```typescript
- * const metric1 = new Metric("metric1");
- * const metric2 = new Metric("metric2");
- * const metric3 = new Metric("metric3");
+ * const metric1 = new Metric("Metric 1");
+ * const metric2 = new Metric("Metric 2");
+ * const metric3 = new Metric("Metric 3");
+ *
  * const experience = new ExperienceMetric({
  *   name: "My Experience",
  *   metrics: [metric1, metric2, metric3],
