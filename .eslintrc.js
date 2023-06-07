@@ -27,7 +27,7 @@ module.exports = {
 			jsx: true,
 		},
 	},
-	plugins: ["simple-import-sort", "@typescript-eslint", "prettier"],
+	plugins: ["simple-import-sort", "@typescript-eslint", "prettier", "unused-imports"],
 	rules: {
 		"radix": 0,
 		"no-new": 0,
@@ -40,6 +40,7 @@ module.exports = {
 		"no-prototype-builtins": 0,
 		"prefer-rest-params": 0,
 		"no-mixed-spaces-and-tabs": 0,
+		"unused-imports/no-unused-imports-ts": 2,
 		"@typescript-eslint/unbound-method": 0,
 		"@typescript-eslint/no-unsafe-argument": 0,
 		"@typescript-eslint/no-unsafe-return": 0,
