@@ -95,7 +95,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   /**
    * Listen For Session End
    *
-   * If the document is ever moved to the background or closed, a request is
+   * If the document is ever moved to the background or is closed, a request is
    * immediately sent to the provided destination containing the contents of
    * the queue
    */

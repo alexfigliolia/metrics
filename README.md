@@ -2,7 +2,7 @@
 A frontend performance library for composing metrics from real user experiences.
 
 ## Background
-In every heavily trafficked frontend application exists a means for monitoring user experience and customer success. However, the definitions of a quality UX and customer success can vary heavily from feature to feature, user to user, and application to application. This library is designed to allow developers to compose metrics based on the behaviors their of end users and the performance they experience.
+In every heavily trafficked frontend application exists a means for monitoring user experience and customer success. This library is designed to allow developers to compose metrics based on the behaviors their of end users and the performance they experience.
 
 ## Getting Started
 ```bash
@@ -10,42 +10,93 @@ npm i -S @figliolia/metrics
 # or
 yarn add @figliolia/metrics
 ```
+## Basic Usage
+
+### Instrumenting Metrics
+Metrics can wrap virtually any experience pertinent to your end users. This can include user-onboarding, a core feature initializing, a graph rendering data from your API, and more. Tracking these metrics in production environments will help prevent and catch performance regressions, bugs, and pain points within your application.
+```typescript
+import { Metric } from "@figliolia/metrics";
+
+const GraphMetric = new Metric("Graph Rendering");
+
+GraphMetric.on("start" | "stop" | "reset", metric => {
+  // Listen for events fired!
+});
+
+async function fetchGraphData(query: any) {
+  GraphMetric.start();
+  const response = await fetch({
+    url: "/graph-data",
+    data: JSON.stringify(query)
+  });
+  const data = await response.json();
+  // format response data for your visualization framework
+  await renderGraph(data);
+  // Stop the metric once the graph renders with its data
+  GraphMetric.stop();
+}
+```
+### Instrumenting Interactions
+Interaction Metrics add reliability indicators to typical performance metrics. When using Interaction Metrics, you have the option to `fail` and `succeed` the metric based on the outcome of the interaction.
+```typescript
+import { InteractionMetric } from "@figliolia/metrics";
+
+const SignUpMetric = new Metric("Sign Up");
+
+SignUpMetric.on("success" | "failure", metric => {
+  // Listen for events fired!
+});
+
+async function signUp(username: string, password: string) {
+  SignUpMetric.start();
+  try {
+    const response = await fetch({
+      url: "/sign-up",
+      data: JSON.stringify({ username, password })
+    });
+    const data = await response.json();
+    // Redirect the user to the Home Page
+    await redirectToHome();
+    // Succeed the metric
+    SignUpMetric.succeed();
+  } catch(error: unknown) {
+    // Fail the metric
+    SignUpMetric.fail({ error });
+  }
+}
+```
 
 ## Metrics and Recipes
 This library provides three core interfaces for composing metrics for customer experiences. 
 ### Metrics
-The `Metric` interface is designed for tracking all kinds of performance indicators. The `Metric` class operates as an event emitter, tracking start and stop times for a given user experience. `Metrics` can track experiences such as
-1. The Time-to-Interactivity for a feature or page
-2. Micro interactions such as the duration between the submission of a form and the user receiving an indication of success
-3. The time to render individual features or components
-4. Virtually any scenario that's core to your end users! 
+The `Metric` interface is designed for tracking all kinds of performance indicators. The `Metric` class operates as an event emitter, tracking start and stop times for a given user experience.
 
-On top of tracking durations for various user-scenarios, your metrics can be subscribed to from anywhere in your application! This means you can execute any logic you wish, deferred entirely behind the successful execution of your `Metric`.
+On top of tracking durations for various user-scenarios, your metrics can be subscribed to from anywhere in your application. This means you can execute any logic you wish, deferred entirely behind the successful execution of your `Metric`.
 
 Let's look at a working example:
 ```typescript
 import { Metric } from "@figliolia/metrics";
 
-export const HomePageMetric = new Metric("Home Page Interactive");
+export const HomePagePerformance = new Metric("Home Page Interactive");
 
-HomePageMetric.on("stop", async (metric) => {
-  // Let's post our Home Page interactivity measure to an analytics service!
-  await fetch("/analytics/home", {
+HomePagePerformance.on("stop", async (metric) => {
+  // Let's post our Home Page interactivity metric to an analytics service!
+  await fetch("/analytics", {
     method: "POST",
     body: JSON.stringify(metric)
   });
-  // Let's preload a secondary or off-screen experience once our Home Page
+  // Let's preload a secondary experience once our Home Page
   // is fully interactive
   preloadHomePageFooter();
 });
 ```
 
-Next up, let's implement the `HomePageMetric` in our UI code:
+Next up, let's implement the `HomePagePerformance` in our UI code:
 
 I'm going to use React for spinning up some example UI, but the same principals can apply to any UI framework you wish
 ```tsx
 import { useState, useEffect } from "react";
-import { HomePageMetric } from "./HomePageMetric";
+import { HomePagePerformance } from "./HomePagePerformance";
 
 export const HomePage = () => {
   const [state, setState] = useState<{ 
@@ -55,12 +106,12 @@ export const HomePage = () => {
 
   useEffect(() => {
     // Let's start the metric immediately on mount!
-    HomePageMetric.start();
+    HomePagePerformance.start();
     fetch("/user-data").then(data => {
       setState(data);
       // Lets stop the metric once all data required
       // for interactivity has loaded successfully
-      HomePageMetric.stop();
+      HomePagePerformance.stop();
     });
   }, []);
 
@@ -78,26 +129,32 @@ export const HomePage = () => {
   );
 }
 ```
-With about 5 lines of code, we've implemented a metric that times the interactivity of our Home Screen. But let's take this one step further. The metric above effectively records the duration of the `/user-data` request. Let's instead, allow the metric to begin recording as soon as the browser navigates to the `HomePage`.
+With less than 10 lines of code, we've implemented a metric that times the interactivity of our Home Screen, preloads secondary content, and sends the results to a backend server! 
 
-To do this, we need to add one line of code to our metric:
+But let's take this one step further. The metric above effectively records the duration of the `/user-data` request and the content rendering. Let's instead, allow the metric to begin recording as soon as the browser navigates to the `HomePage`.
+
+To do this, we need to add two lines of code to our metric:
 ```typescript
 // First let's import the PageLoadPlugin
 import { Metric, PageLoadPlugin } from "@figliolia/metrics";
 
-// Let's enable it!
+// Enable the plugin to record a timestamp on each 
+// pushstate event
 PageLoadPlugin.enable();
 
-export const HomePageMetric = new Metric("Home Page Interactive", {
-  // Let's add the plugin to our Metric!
-  pageLoad: PageLoadPlugin
+export const HomePagePerformance = new Metric("Home Page Interactive", {
+  // Next, let's add the plugin to our Metric!
+  pageLoad: new PageLoadPlugin(true) 
+  // `True` indicates the usage of the browser's History API
 });
 ```
 
 And that's it! Now our "Home Page Interactive" metric will record the time between the browser navigating to the Home Page and our data-populated UI rendering.
 
 ### Interaction Metrics
-Now that we've gone over a basic performance metric, lets take a quick dive into `InteractionMetric`'s. These metrics combine the functionality of the core `Metric` interface with `success/failure` indicators. They're designed for tracking not only performance, but overall reliability! Let's take a look at a working example:
+Now that we've gone over a basic performance metric, lets take a quick dive into `InteractionMetric`'s. These metrics combine the functionality of the core `Metric` interface with `success/failure` indicators. They're designed for tracking not only performance, but feature-reliability as well. 
+
+Let's take a look at a working example:
 ```tsx
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { InteractionMetric } from "@figliolia/metrics":
@@ -114,22 +171,40 @@ export const SignUpUI = () => {
     }
   }
 
-  const onSubmit = SignUpMetric.record(async (e: FormEvent<HTMLFormElement>) => {
-    return fetch("/sign-up", {
-      method: "POST",
-      body: JSON.stringify({ email, password })
-    });
-  });
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    // Start the metric on submit
+    SignUpMetric.start();
+    try {
+      await fetch("/sign-up", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+      await redirectToHome();
+      // Succeed the metric after successfully redirecting
+      SignUpMetric.succeed();
+    } catch(error) {
+      // Fail the metric with an attached error
+      SignUpMetric.fail({ error });
+    }
+  };
 
   return (
     <form onSubmit={onSubmit}>
-      <input name="Email" type="text" value={email} onChange={onChange(setEmail)} />
-      <input name="Password" type="password" value={password} onChange={onChange(setPassword)} />
+      <input 
+        name="Email" 
+        type="text" 
+        value={email} 
+        onChange={onChange(setEmail)} />
+      <input 
+        name="Password" 
+        type="password" 
+        value={password}
+        onChange={onChange(setPassword)} />
     </form>
   );
 }
 ```
-In the above example we have a basic sign up form with our `onSubmit` function wrapped in a call to `SignUpMetric.record()`. When our form is submitted, our `SignUpMetric` is going to track the duration of our form submission as well as its reliability. Similar to our first example, we can subscribe to our metrics emissions and 
+When our form is submitted, our `SignUpMetric` is going to track the duration of our form submission as well as its rate of success and failure. Similar to our first example, we can subscribe to our metric's events and 
 1. Post our metrics to a remote service 
 2. Run reactionary logic to our Metric succeeding or failing
 
@@ -152,25 +227,26 @@ SignUpMetric.on("stop", async (metric) => {
 ```
 
 ### Experience Metrics
-Experience Metrics are designed to allow developers to compose metrics from one or more sub metrics. The `ExperienceMetric` derives it's duration using the earliest start-time and the latest stop-time across all of its child-metrics. The `ExperienceMetric` is great for complex interfaces with numerous moving parts. Some strong use-cases for Experience Metrics are:
+Experience Metrics are designed to allow developers to compose metrics from one or more sub metrics. 
+
+The `ExperienceMetric` derives it's duration using the earliest start-time and the latest stop-time across all of its child-metrics. This metric is great for complex interfaces with numerous moving parts. Some strong use-cases for Experience Metrics are:
 1. Complex interactions with several trackable sub-processes
 2. UI routes with multiple core features delivered to the browser asynchronously
 
 Let's create a working example:
 ```typescript
 import { Metric, ExperienceMetric } from "@figliolia/metrics";
-// HomeScreenMetrics.ts
 
 // Metrics for HomeScreen components
-export const HeaderMetric = new Metric("Header TTI");
+export const HeaderMetric = new Metric("Header Performance");
 
-export const FooterMetric = new Metric("Footer TTI");
+export const FooterMetric = new Metric("Footer Performance");
 
-export const DashboardMetric = new Metric("Dashboard TTI");
+export const DashboardMetric = new Metric("Dashboard Performance");
 
-// An Experience Metric composed from the above metrics
+// An Experience Metric for the HomeScreen
 export const HomeScreenMetric = new ExperienceMetric({
-  name: "Home Screen", 
+  name: "Home Screen Performance", 
   metrics: [
     HeaderMetric,
     FooterMetric,
@@ -178,6 +254,7 @@ export const HomeScreenMetric = new ExperienceMetric({
   ]
 });
 
+// Post the metric to your analytics service
 HomeScreenMetric.on("stop", (metric) => {
   await fetch("/analytics", {
     method: "POST",
@@ -185,40 +262,42 @@ HomeScreenMetric.on("stop", (metric) => {
   });
 });
 ```
-Similar to the prior examples, our `HeaderMetric`, `FooterMetric`, and `DashboardMetric` will then be implemented in each of their corresponding features tracking the first fully interactive render of each component. Our `HomeScreenMetric` on the other hand, requires no implementation at all! Once each of its sub-metrics complete, it's `stop` event will fire - allowing you to run any reactionary logic you wish.
+In this example, our `HomeScreenMetric` will have a `startTime` equal to the *earliest* `start()` of each of the sub-metrics. Similarly, the `HomeScreenMetric` will have a `stopTime` equal to the *last* `stop()` of the sub-metrics. The duration will be computed upon the `startTime` and `stopTime` to compose an overarching metric for the Home Screen.
 
-When composing `ExperienceMetric`'s, you may also provide them with an array of `InteractionMetric`'s - or even a mix of both `Metric`'s and `InteractionMetric`'s.
+`ExperienceMetrics` can accept any combination of `Metrics` and `InteractionMetrics`.
 
 ## Plugins
-Plugins are designed to enhance your metrics with any proprietary data you wish to have associated with a given `Metric`. This library comes out of the box with `Plugins` designed to assist with:
-1. Posting your metrics to the service of your choosing (ReporterPlugin)
+Plugins are designed to enhance your metrics with any any data you wish to have associated with a given `Metric`. This library comes out of the box with a few `Plugins` designed to assist with:
+1. Sending your metrics to the backend service of your choosing (ReporterPlugin)
 2. Tracking your metrics in relation to the most recent browser navigation (PageLoadPlugin)
 3. Tracking cumulative layout shift for metrics associated with UI features (CLSPlugin)
-4. Tracking the total weight JavaScript required to deliver a feature or metric (CriticalResourcePlugin)
-5. Tracking the browser's cache-rate of a feature or metric (CriticalResourcePlugin)
+4. Tracking the total weight resources required to deliver a feature or metric (CriticalResourcePlugin)
+5. Tracking the cache-rate of resources required to deliver a feature or metric  (CriticalResourcePlugin)
 
-In this section, we'll implement metrics using each built-in plugin, then we'll build a plugin of our own.
+Let's dive into each plugin, then build one of our own!
 
 ### Reporter Plugin
-In several of the prior examples, we've subscribed to our `Metric`'s `stop` event in order to send our data to a hypothetical server. Using the `ReporterPlugin`, we can actually handle all of our metric reporting without writing individual subscriptions to each metric. Instead, we can import this library's `ProcessingQueue` and configure it with our server location.
+In several of the prior examples, we've subscribed to our `Metric`'s `stop` event in order to send our metrics to a backend server. Using the `ReporterPlugin`, we can actually handle all of our metric reporting without writing any individual subscriptions on each metric. 
 
 ```typescript
-// MetricReporter.ts
-import { ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
+import { 
+  ReporterPlugin, 
+  ProcessingQueue,
+} from "@figliolia/metrics";
 
 // This queue will batch requests to the destination specified
-const Queue = new ProcessingQueue("https://your-service.com/analytics", {
+const Queue = new ProcessingQueue("https://analytics-service.com", metrics => {
   /* 
-    Any extra you wish to send to your server such as
-    1. User Agent
-    2. Locale
-    3. Geographic region
-    4. Tenant/Customer information
+    Format outgoing metrics in any way you wish
+    and append any extra data to your request. The
+    returned value will be passed directly to HTTP
+    calls as the body parameter
   */
+  return JSON.stringify(metrics)
 });
 
-// Next, let's create a `ReporterPlugin` instance that uses our Queue
-export const Reporter = new ReporterPlugin(Queue);
+// Next, let's create a function that'll attach our the 
+// ReporterPlugin to each metric we create:
 ```
 Lastly, let's pass our `Reporter` to some metrics!
 
