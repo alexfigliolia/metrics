@@ -5,8 +5,7 @@ import type { Metric } from "Metrics/Metric";
 /**
  * Processing Queue
  *
- * A scheduler for sending batches of metrics to a provided
- * destination
+ * A scheduler for sending batches of metrics to a specified endpoint
  *
  * ```typescript
  * import { ProcessingQueue } from "@figliolia/metrics";
@@ -34,7 +33,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   /**
    * Enqueue
    *
-   * Adds an item to the queue and schedules its request to the provided
+   * Adds an item to the queue and schedules a request to the provided
    * destination
    */
   public enqueue(item: T) {
@@ -64,7 +63,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   /**
    * Schedule
    *
-   * Schedules a request to the provided destination containing the
+   * Schedules a request to the provided endpoint containing the
    * currently enqueued items
    */
   private schedule() {

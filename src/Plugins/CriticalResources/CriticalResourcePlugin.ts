@@ -4,7 +4,7 @@ import { Plugin } from "Plugin/Plugin";
 /**
  * Critical Resource Plugin
  *
- * A plugin designed to record Critical Path and cache attributes
+ * A plugin designed to record Critical Path and Cache attributes
  * for a given metric. This plugin accepts a list of file extensions
  * and returns the underlying weight of collective resources required
  * to serve the metric to the browser. The aforementioned resources
@@ -13,7 +13,7 @@ import { Plugin } from "Plugin/Plugin";
  *
  * ```typescript
  * const metric = new Metric("My Metric", {
- *   resources: new CriticalResourcePlugin("js", "css")
+ *   resources: new CriticalResourcePlugin(["js", "css"])
  * });
  * ```
  */
@@ -25,7 +25,6 @@ export class CriticalResourcePlugin<
   public extensions: Set<string>;
   private static browserSupport =
     typeof window !== undefined && "performance" in window;
-  public browserSupport = CriticalResourcePlugin.browserSupport;
   constructor(extensions: string[] = ["js", "css"]) {
     super();
     this.extensions = new Set(extensions);
@@ -61,11 +60,11 @@ export class CriticalResourcePlugin<
    * Iterate Resources
    *
    * Filters all loaded resources for those loaded within the
-   * duration of the metric. Computes the total size (`criticalSize`)
+   * duration of the metric. Returns the total size (`criticalSize`)
    * and `cacheRate`
    */
   private iterateResources(startTime: number, stopTime: number) {
-    if (!this.browserSupport) {
+    if (!CriticalResourcePlugin.browserSupport) {
       return { cacheRate: 0, criticalSize: 0 };
     }
     let cachedSize = 0;
@@ -116,8 +115,8 @@ export class CriticalResourcePlugin<
     return {
       cacheRate: this.cacheRate,
       criticalSize: this.criticalSize,
-      browserSupport: this.browserSupport,
       extensions: Array.from(this.extensions),
+      browserSupport: CriticalResourcePlugin.browserSupport,
     };
   }
 }

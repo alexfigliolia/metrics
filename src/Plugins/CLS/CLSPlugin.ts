@@ -14,6 +14,10 @@ import type { Layout, LayoutShift } from "./types";
  * const metric = new Metric("My Metric", {
  *   CLS: new CLSPlugin(".my-ui-element")
  * });
+ *
+ * metric.start() // records the initial layout position of ".my-ui-element"
+ * metric.plugins.CLS.inspect() // records additional layout positions of ".my-ui-element"
+ * metric.stop() // Records all layout shifts that occurred between the start and stop time
  * ```
  */
 export class CLSPlugin<
@@ -46,7 +50,8 @@ export class CLSPlugin<
   /**
    * Start
    *
-   * Records the target elements's `boundClientRect`
+   * Records the target elements's height, width and absolute
+   * coordinates
    */
   protected override start() {
     const element = this.querySelector();
@@ -58,8 +63,9 @@ export class CLSPlugin<
   /**
    * Stop
    *
-   * Records the target elements's `boundClientRect` and compares
-   * it to the element's initial layout position
+   * Records the target elements's height, width and absolute
+   * coordinates then compares them to the target's initial
+   * layout position
    */
   protected override stop(metric: T) {
     this.inspect(metric.stopTime);
@@ -78,8 +84,9 @@ export class CLSPlugin<
   /**
    * Inspect
    *
-   * Records the position of the target element and compares to the
-   * element's initial position
+   * Records the target elements's height, width and absolute
+   * coordinates then compares them to the target's initial
+   * layout position
    */
   public inspect(time = performance.now()) {
     const element = this.querySelector();
@@ -110,10 +117,10 @@ export class CLSPlugin<
   /**
    * Detect Layout Shift
    *
-   * Calls the target element's `boundingClientRect()` method and
-   * compares each position to the element's initial layout position.
-   * If a shift is detected, a shift object is pushed to the instance's
-   * `layoutShifts` property
+   * Compares the current positions of the target element to its
+   * initial layout position. When shifts are detected, entries
+   * are added to the `layoutShifts` array containing shifted
+   * layout properties and the number of pixels
    */
   private detectLayoutShift(element: Element | null, time: number) {
     if (!element) {
@@ -161,7 +168,7 @@ export class CLSPlugin<
   /**
    * Initial Layout
    *
-   * A zero'd out `DOMRect` object
+   * A zero'd out `Layout` object
    */
   private static readonly DOMRect = {
     x: 0,

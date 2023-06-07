@@ -10,11 +10,13 @@ import type { PageLoadJSON } from "./types";
  * browser's navigation takes place before an application
  * can completely bootstrap, Metrics on their own, cannot produce
  * the durations relative to the applications initial load. By
- * adding this plugin to a metric, it's `startTime` is set equal
+ * adding this plugin to a metric, its `startTime` is set equal
  * to the browser's most recent navigation
  *
  * ```typescript
- * const metric = new Metric("My Metric", { pageLoad: PageLoadPlugin });
+ * const metric = new Metric("My Metric", {
+ *   pageLoad: new PageLoadPlugin()
+ * });
  * ```
  */
 export class PageLoadPlugin<

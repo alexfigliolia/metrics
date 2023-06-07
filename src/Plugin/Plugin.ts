@@ -19,7 +19,9 @@ import type { PluginEvent } from "./types";
  * }
  *
  *
- * const myMetric = new Metric("My Metric", { logger: LoggerPlugin });
+ * const myMetric = new Metric("My Metric", {
+ *   logger: new LoggerPlugin()
+ * });
  * ```
  */
 export class Plugin<T extends Metric<any, any> = Metric<any, any>> {

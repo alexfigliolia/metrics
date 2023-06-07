@@ -11,7 +11,9 @@ import type { PluginEvent } from "Plugin/types";
  * emitted from one of your metrics
  *
  * ```typescript
- * const metric = new Metric("My Metric", { logger: LoggerPlugin });
+ * const metric = new Metric("My Metric", {
+ *  logger: new LoggerPlugin()
+ * });
  * ```
  */
 export class LoggerPlugin<
