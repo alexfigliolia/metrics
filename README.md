@@ -13,27 +13,27 @@ yarn add @figliolia/metrics
 ## Basic Usage
 
 ### Instrumenting Metrics
-Metrics can wrap virtually any experience pertinent to your end users. This can include user-onboarding, a core feature initializing, a graph rendering data from your API, and more. Tracking these metrics in production environments will help prevent and catch performance regressions, bugs, and pain points within your application.
+Metrics can wrap any experience pertinent to your end users. This can include user-onboarding, core features initializing, UI rendering with resolved API data, and more. Tracking these metrics in production environments will help assess real customer performance, catch regressions and bugs, and assist in identifying pain points within your application.
 ```typescript
 import { Metric } from "@figliolia/metrics";
 
-const GraphMetric = new Metric("Graph Rendering");
+const MyMetric = new Metric("Initial Render");
 
-GraphMetric.on("start" | "stop" | "reset", metric => {
+MyMetric.on("start" | "stop" | "reset", metric => {
   // Listen for events fired!
 });
 
-async function fetchGraphData(query: any) {
-  GraphMetric.start();
+async function fetchData(query: any) {
+  MyMetric.start();
   const response = await fetch({
-    url: "/graph-data",
+    url: "/data",
     data: JSON.stringify(query)
   });
   const data = await response.json();
-  // format response data for your visualization framework
-  await renderGraph(data);
-  // Stop the metric once the graph renders with its data
-  GraphMetric.stop();
+  // format response data for your UI framework
+  await renderUI(data);
+  // Stop the metric once the UI renders with its data
+  MyMetric.stop();
 }
 ```
 ### Instrumenting Interactions
@@ -67,11 +67,10 @@ async function signUp(username: string, password: string) {
 ```
 
 ## Metrics and Recipes
-This library provides three core interfaces for composing metrics for customer experiences. 
 ### Metrics
 The `Metric` interface is designed for tracking all kinds of performance indicators. The `Metric` class operates as an event emitter, tracking start and stop times for a given user experience.
 
-On top of tracking durations for various user-scenarios, your metrics can be subscribed to from anywhere in your application. This means you can execute any logic you wish, deferred entirely behind the successful execution of your `Metric`.
+On top of tracking durations for various user-scenarios, your metrics can be subscribed to from anywhere in your application. This means you can execute any logic you wish that will be deferred entirely behind the successful execution of your `Metric`.
 
 Let's look at a working example:
 ```typescript
@@ -81,22 +80,22 @@ export const HomePagePerformance = new Metric("Home Page Interactive");
 
 HomePagePerformance.on("stop", async (metric) => {
   // Let's post our Home Page interactivity metric to an analytics service!
-  await fetch("/analytics", {
+  void fetch("/analytics", {
     method: "POST",
     body: JSON.stringify(metric)
   });
   // Let's preload a secondary experience once our Home Page
   // is fully interactive
-  preloadHomePageFooter();
+  ExpensiveOffScreenComponent.preload();
 });
 ```
 
-Next up, let's implement the `HomePagePerformance` in our UI code:
+Next up, let's implement the the metric above in our UI code:
 
 I'm going to use React for spinning up some example UI, but the same principals can apply to any UI framework you wish
 ```tsx
 import { useState, useEffect } from "react";
-import { HomePagePerformance } from "./HomePagePerformance";
+import { HomePagePerformance } from "./HomePageMetric";
 
 export const HomePage = () => {
   const [state, setState] = useState<{ 
@@ -131,9 +130,9 @@ export const HomePage = () => {
 ```
 With less than 10 lines of code, we've implemented a metric that times the interactivity of our Home Screen, preloads secondary content, and sends the results to a backend server! 
 
-But let's take this one step further. The metric above effectively records the duration of the `/user-data` request and the content rendering. Let's instead, allow the metric to begin recording as soon as the browser navigates to the `HomePage`.
+But let's take this one step further. The metric above effectively records the duration of the `/user-data` request and the content rendering on the screen. Let's instead, allow the metric to begin recording as soon as the browser navigates to the `HomePage`.
 
-To do this, we need to add two lines of code to our metric:
+To do this, we need to add two lines of code to our metric's declaration:
 ```typescript
 // First let's import the PageLoadPlugin
 import { Metric, PageLoadPlugin } from "@figliolia/metrics";
@@ -149,10 +148,10 @@ export const HomePagePerformance = new Metric("Home Page Interactive", {
 });
 ```
 
-And that's it! Now our "Home Page Interactive" metric will record the time between the browser navigating to the Home Page and our data-populated UI rendering.
+Now our "Home Page Interactive" metric will record the time between the browser navigating to the Home Page and our data-populated UI rendering - giving us a real measurement of the page's interactivity.
 
 ### Interaction Metrics
-Now that we've gone over a basic performance metric, lets take a quick dive into `InteractionMetric`'s. These metrics combine the functionality of the core `Metric` interface with `success/failure` indicators. They're designed for tracking not only performance, but feature-reliability as well. 
+These metrics combine the functionality of the core `Metric` interface with `success/failure` indicators. They're designed for tracking not only performance, but feature-reliability as well. 
 
 Let's take a look at a working example:
 ```tsx
@@ -254,7 +253,7 @@ export const HomeScreenMetric = new ExperienceMetric({
   ]
 });
 
-// Post the metric to your analytics service
+// Post the metric to your analytics service on "stop"
 HomeScreenMetric.on("stop", (metric) => {
   await fetch("/analytics", {
     method: "POST",
@@ -262,17 +261,17 @@ HomeScreenMetric.on("stop", (metric) => {
   });
 });
 ```
-In this example, our `HomeScreenMetric` will have a `startTime` equal to the *earliest* `start()` of each of the sub-metrics. Similarly, the `HomeScreenMetric` will have a `stopTime` equal to the *last* `stop()` of the sub-metrics. The duration will be computed upon the `startTime` and `stopTime` to compose an overarching metric for the Home Screen.
+In the example above, the `HomeScreenMetric` will have a `startTime` equal to the *earliest* `start()` out of each of the sub-metrics. Similarly, the `HomeScreenMetric` will have a `stopTime` equal to the *last* `stop()` of each of the sub-metrics. The duration will be computed upon the `startTime` and `stopTime` to compose an overarching metric for the Home Screen.
 
 `ExperienceMetrics` can accept any combination of `Metrics` and `InteractionMetrics`.
 
 ## Plugins
-Plugins are designed to enhance your metrics with any any data you wish to have associated with a given `Metric`. This library comes out of the box with a few `Plugins` designed to assist with:
-1. Sending your metrics to the backend service of your choosing (ReporterPlugin)
-2. Tracking your metrics in relation to the most recent browser navigation (PageLoadPlugin)
-3. Tracking cumulative layout shift for metrics associated with UI features (CLSPlugin)
-4. Tracking the total weight resources required to deliver a feature or metric (CriticalResourcePlugin)
-5. Tracking the cache-rate of resources required to deliver a feature or metric  (CriticalResourcePlugin)
+Plugins are a developer API designed to enhance your metrics with any extra data or functionality your wish to add. This library comes out of the box with a few `Plugins` designed to assist with:
+1. Sending your metrics to the backend service of your choosing (`ReporterPlugin`)
+2. Tracking your metrics in relation to the most recent browser navigation (`PageLoadPlugin`)
+3. Tracking cumulative layout shift for metrics associated with UI features (`CLSPlugin`)
+4. Tracking the total weight resources required to deliver a feature or metric (`CriticalResourcePlugin`)
+5. Tracking the cache-rate of resources required to deliver a feature or metric (`CriticalResourcePlugin`)
 
 Let's dive into each plugin, then build one of our own!
 
@@ -280,10 +279,7 @@ Let's dive into each plugin, then build one of our own!
 In several of the prior examples, we've subscribed to our `Metric`'s `stop` event in order to send our metrics to a backend server. Using the `ReporterPlugin`, we can actually handle all of our metric reporting without writing any individual subscriptions on each metric. 
 
 ```typescript
-import { 
-  ReporterPlugin, 
-  ProcessingQueue,
-} from "@figliolia/metrics";
+import { ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
 
 // This queue will batch requests to the destination specified
 const Queue = new ProcessingQueue("https://analytics-service.com", metrics => {
@@ -295,39 +291,44 @@ const Queue = new ProcessingQueue("https://analytics-service.com", metrics => {
   */
   return JSON.stringify(metrics)
 });
-
-// Next, let's create a function that'll attach our the 
-// ReporterPlugin to each metric we create:
 ```
-Lastly, let's pass our `Reporter` to some metrics!
+Now, let's pass our `ProcessingQueue` to Metrics using the `ReporterPlugin`!
 
 ```typescript
-import { Metric, InteractionMetric, ExperienceMetric } from "@figliolia/metrics";
-import { Reporter } from "./MetricReporter";
+import { 
+  Metric,
+  InteractionMetric, 
+  ExperienceMetric, 
+  ReporterPlugin 
+} from "@figliolia/metrics";
+import { Queue } from "./MyQueue";
 
-const MyMetric = new Metric("My Metric", { Reporter });
+const MyMetric = new Metric("My Metric", { 
+  reporter: new ReporterPlugin(Queue)
+});
 
-const MyInteraction = new MyInteraction("My Interaction", { Reporter });
+const MyInteraction = new MyInteraction("My Interaction", {
+  reporter: new ReporterPlugin(Queue)
+});
  
 const MyExperience = new ExperienceMetric({
   name: "My Experience",
-  plugins: { Reporter },
   metrics: [MyMetric, MyInteraction],
+  plugins: { reporter: new ReporterPlugin(Queue) },
 });
 ```
-Using our `Reporter`, each metric will now post their results to the service provided above. The `Reporter` also comes with a few optimizations over more standard HTTP Requests:
-1. The `Reporter` will batch several metrics together into a single request whenever possible
-2. The `Reporter` will send out all metrics in its `Queue` if a browser session is terminated or moved to the background
-3. The `Reporter` will use the [Beacon API](https://developer.mozilla.org/en-US/docs/Web/API/Beacon_API) whenever possible 
+Each of the metrics above will now add their results to the `ProcessingQueue` when their `stop` events are called. The Queue will then make batched post requests to the specified endpoint containing each metric's results.
+
+The `ReporterPlugin` will also reliably send out all metrics in its `Queue` if a browser session is terminated or moved to the background unexpectedly.
 
 ### Page Load Plugin
-The `PageLoadPlugin` allows for measuring `Metric` durations using the latest browser navigation. This allows for measuring the duration of a feature's first paint (or TTI) relative to moment your application reaches the browser. This is useful tracking the performance of route-level features that are core to your user-experience.
+The `PageLoadPlugin` allows for measuring `Metric` durations using the latest browser navigation. This allows for measuring the duration of a feature's first paint (or TTI) relative to moment your application reaches the browser or transitions between routes.
 
 ```typescript
 import { Metric, PageLoadPlugin } from "@figliolia/metrics";
 
 const ProfilePageMetric = new Metric("Profile Page", { 
-  pageLoad: PageLoadPlugin 
+  pageLoad: new PageLoadPlugin() 
 });
 ```
 
@@ -336,7 +337,7 @@ When calling `ProfilePageMetric.start()`, the `Metric`'s `startTime` is set to t
 ### CLS Plugin
 Cumulative Layout Shift is a visual stability metric designed to measure the propensity for elements on the page to suddenly change positions. CLS occurs most commonly between a page's first-paint and subsequent paints where data begins populating the page. A common strategy for minimizing CLS is to render data-hydrated pages on the server - however, some UI features require the client to fully function. For features such as these, this library provides the `CLSPlugin`. 
 
-This plugin allows for tracking the layout position of a UI element between a Metric's `start()` and `stop()` calls. On `start()` the plugin will capture the target element's `boundingClientRect()`. On `stop()`, the `boundingClientRect()` will be captured again and compared to the prior position:
+This plugin allows for tracking the layout position of a UI element between a Metric's `start()` and `stop()` calls. On `start()` the plugin will capture the target element's absolute position. On `stop()`, the absolute position will be captured again and compared to the prior position:
 ```tsx
 import type { FC } from "react";
 import { useState, useEffect } from "react";
@@ -435,10 +436,11 @@ AvatarMetric.plugins.CLS.inspect();
 ### Critical Resource Plugin
 This plugin is designed to track resources contributing to a feature's [Critical Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path). The plugin will calculate the total weight of JavaScript and CSS required to deliver your feature to the browser as well as the cache-rate of those resources. By default, all `JavaScript` and `CSS` resources served to the browser will be accounted for, but developers may opt in to tracking any file extensions they wish.
 
-Let's dive into an example using our prior `ExperienceMetric` for our application's Home Page:
+Let's dive into an example using our `ExperienceMetric` from a previous example:
 ```typescript
 import { Metric, PageLoadPlugin, CriticalResourcePlugin } from "@figliolia/metrics";
 
+// Enable using the browser's navigation as the startTime
 PageLoadPlugin.enable();
 
 // Home Screen sub-metrics
@@ -457,35 +459,158 @@ export const HomeScreenMetric = new ExperienceMetric({
     DashboardMetric
   ],
   plugins: {
-    // Let's enable the `PageLoadPlugin` to track durations from the browser's
-    // most recent navigation 
-    pageLoad: PageLoadPlugin,
-    // Let's add our `CriticalResourcePlugin` to track Critical Path and
-    // cache rate
-   resources: new CriticalResourcePlugin(["js", ".css", ".svg", ".png"])
+    // Let's enable the `PageLoadPlugin` to track durations from 
+    // the browser's most recent navigation 
+    pageLoad: new PageLoadPlugin(),
+    // Let's add our `CriticalResourcePlugin` to track Critical 
+    // Path and cache rate for JavaScript, CSS, and SVG's
+    resources: new CriticalResourcePlugin(["js", "css", "svg"])
   }
 });
 
 HomeScreenMetric.on("stop", (metric) => {
- /*
-  HomeScreenMetric {
-    "name": "Home Screen",
-    "startTime": 0,
-    "stopTime": 2500,
-    "duration": 2500,
-    "status": "complete",
-    "metrics": [HeaderMetric, FooterMetric, DashboardMetric],
-    "plugins": {
-      "resources": {
-        // The total weight of tracked resources loaded before this metric's `stop()` event
-        "criticalSize": 200000 (bytes),
-        // The cache rate (%) of the tracked resources
-        "cacheRate": 75,
-        // The allowed extensions for tracked resources
-        "extensions": ["js", ".css", ".svg", ".png"]
+  /*
+    HomeScreenMetric {
+      "name": "Home Screen",
+      "startTime": 0,
+      "stopTime": 2500,
+      "duration": 2500,
+      "status": "complete",
+      "metrics": [HeaderMetric, FooterMetric, DashboardMetric],
+      "plugins": {
+        "resources": {
+          "criticalSize": 200000 // (bytes),
+          "cacheRate": 75 // (%),
+          "extensions": ["js", ".css", ".svg"]
+        }
       }
     }
-  }
- */
+  */
 });
 ```
+
+### Simplifying Metric Creation
+In the past few examples, we've added plugins on an adhoc basis to the Metrics we create. Let's now look at creating Metrics with a default set of enabled plugins to save time and developer effort:
+```typescript
+import { 
+  MetricFactory, 
+  LoggerPlugin, 
+  ReporterPlugin, 
+  ProcessingQueue,
+} from "@figliolia/metrics";
+
+let Queue: ProcessingQueue | undefined;
+const Plugins = {
+  // Specify any Plugins you wish
+  logger: LoggerPlugin,
+  reporter: ReporterPlugin
+}
+
+if(process.env.NODE_ENV === "production") {
+  // Remove logging in production
+  delete Plugins.logger
+  // initialize the ProcessingQueue to report metrics
+  // to your server
+  Queue = new ProcessingQueue("/analytics");
+} else {
+  // Remove reporting during development and testing
+  delete Plugins.reporter
+}
+
+export const Factory = new MetricFactory(Plugins, Queue);
+```
+Next, let's create metrics using our `Factory`:
+
+```typescript
+import { Factory } from "./MyFactory";
+
+const MyMetric = Factory.createMetric("My Metric");
+const MyInteraction = Factory.createMetric("My Metric");
+const MyExperience = Factory.createMetric({
+  name: "My Metric",
+  metrics: [MyMetric, MyInteraction]
+});
+// In production, each metric will have the `ReporterPlugin` enabled
+
+// During development and testing, each metric will have the `LoggerPlugin` enabled
+```
+Creating factories can save time and effort when creating metrics. In a real world application we might have a `Metric` for each route we support - and each of these Metrics will likely need the `PageLoadPlugin`. To relieve the need to instantiate a `PageLoadPlugin` on each and every metric, we can create another `MetricFactory`.
+
+```typescript
+import { MetricFactory, PageLoadPlugin } from "@figliolia/metrics";
+
+const RouteMetricFactory = new MetricFactory({
+  pageLoad: PageLoadPlugin
+});
+
+// Metrics for each Route in our application
+export const HomeMetric = RouteMetricFactory.createMetric("Home Page");
+export const ContactPage = RouteMetricFactory.createMetric("Contact Page");
+export const ProfileMetric = RouteMetricFactory.createMetric("Profile Page");
+```
+### Building Your Own Plugins
+Now that we've gone through built-in plugins and applying them using Factories, let's talk about building plugins of our own. 
+
+Plugins are designed to be a simple API for attaching functionality to your metrics. `Metrics` by default, emit events for `start`, `stop`, `reset`, and for `InteractionMetrics`, `success` and `failure`. Each of these events can be used to run customized logic through plugins:
+
+```typescript
+import { Plugin, Metric } from "@figliolia/metrics";
+
+export class MyLogger extends Plugin {
+  public myAttribute = true;
+  // To subscribe to a Metric's events, simply override its
+  // corresponding method:
+  protected override start(metric: Metric) {
+    console.log(metric.name, "Started!");
+  }
+
+  protected override stop(metric: Metric) {
+    console.log(metric.name, "Stopped!");
+  }
+
+  protected override reset(metric: Metric) {
+    console.log(metric.name, "Stopped!");
+  }
+
+  public method() {
+    console.log("Called my method!")
+  }
+}
+
+// Let's add this logging plugin to a Metric!
+const MyMetric = new Metric("My Metric", { 
+  logger: new MyLogger() 
+});
+// Run publicly exposed methods
+MyMetric.plugins.logger.method();
+// Access the current state of your plugin
+MyMetric.plugins.logger.myAttribute = true;
+```
+Now, let's build something that may be helpful in catching performance regressions before they reach production.
+
+Let's build a profiler for staging and development environments that log warnings when a Metric exceeds a certain threshold for duration:
+
+```typescript
+import { Plugin, Metric } from "@figliolia/metrics";
+
+export class ProfilerPlugin extends Plugin {
+  public threshold: number;
+  private static enabled = process.env.NODE_ENV !== "production";
+  constructor(threshold: number) {
+    this.threshold = threshold;
+  }
+
+  protected override stop(metric) {
+    if(ProfilerPlugin.enabled && metric.duration > this.threshold) {
+      console.warn(
+        `${metric.name} exceeded the threshold of ${this.threshold} milliseconds.`
+      );
+    }
+  }
+}
+
+export const MyMetric = new Metric("My Metric", {
+  profiler: new ProfilerPlugin(1000)
+});
+```
+Using our new plugin, `MyMetric` will log a warning to the console each time its duration exceeds `1000ms`.
