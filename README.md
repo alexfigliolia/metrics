@@ -489,6 +489,29 @@ HomeScreenMetric.on("stop", (metric) => {
 });
 ```
 
+### Performance Measure Plugin
+This plugin allows developers to access their metrics using the native Performance API. When the `PerformanceMeasurePlugin` is enabled, your `Metric` will create a `performance.measure()` each time its `stop()` event is reached:
+
+```typescript
+import { Metric, PerformanceMeasurePlugin } from "@figliolia/metrics";
+
+const MyMetric = new Metric("My Metric", {
+  measure: new PerformanceMeasurePlugin()
+});
+
+MyMetric.start();
+MyMetric.stop();
+const nativeMetric = performance.getEntriesByName("My Metric");
+/*
+  [{
+    name: "My Metric",
+    start: 123,
+    end: 124,
+    duration: 1
+  }]
+*/
+```
+
 ### Simplifying Metric Creation
 In the past few examples, we've added plugins on an adhoc basis to the Metrics we create. Let's now look at creating Metrics with a default set of enabled plugins to save time and developer effort:
 ```typescript
