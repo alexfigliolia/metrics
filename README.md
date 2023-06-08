@@ -614,3 +614,6 @@ export const MyMetric = new Metric("My Metric", {
 });
 ```
 Using our new plugin, `MyMetric` will log a warning to the console each time its duration exceeds `1000ms`.
+
+### Demo Application
+To find some recipes in an example application, please reference our [Demo App](https://github.com/alexfigliolia/metrics-demo)
