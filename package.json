@@ -10,7 +10,6 @@
   ],
   "scripts": {
     "test": "jest",
-    "coverage": "jest --env=jsdom --coverage --testResultsProcessor ./node_modules/jest-junit",
     "build": "rm -rf dist && tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "lint": "tsc --noemit && eslint ./ --fix"
   },
@@ -24,7 +23,14 @@
     "metrics",
     "monitoring",
     "CLS",
-    "critical assets"
+    "interactions",
+    "reliability",
+    "critical assets",
+    "frontend",
+    "developer tooling",
+    "Logging",
+    "Page Load",
+    "Reporting"
   ],
   "author": "Alex Figliolia",
   "license": "MIT",
