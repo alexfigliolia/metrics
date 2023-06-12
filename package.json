@@ -1,6 +1,6 @@
 {
   "name": "@figliolia/metrics",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A developer-centric frontend performance library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
   "author": "Alex Figliolia",
   "license": "MIT",
   "dependencies": {
-    "@figliolia/event-emitter": "^1.0.7",
+    "@figliolia/event-emitter": "^1.0.8",
     "beaconer": "^1.0.1"
   },
   "devDependencies": {

@@ -41,10 +41,10 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.41.0.tgz#080321c3b68253522f7646b55b577dd99d2950b3"
   integrity sha512-LxcyMGxwmTh2lY9FwHPGWOHmYFCZvbrFCBZL4FzSSsxsRPuhrYUg/49/0KDfW8tnIEaEHtfmn6+NPN+1DqaNmA==
 
-"@figliolia/event-emitter@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@figliolia/event-emitter/-/event-emitter-1.0.7.tgz#54a2dbc8628f6462b4a9c269bfffcfaf3e8b37e3"
-  integrity sha512-1OrsthsbDSbHnPMAJ+GzqUp8wZb+1mTnGQ3Mos2SbS/YHvLUvocmVWMRQ3YNYnFvFYvfcyRZTQOxz8iAQYT9LA==
+"@figliolia/event-emitter@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@figliolia/event-emitter/-/event-emitter-1.0.8.tgz#5592433d97e3b250cdb691afb040e59b88d77bde"
+  integrity sha512-U0VNMaDbYgbEcPPWSOR+EwpGPx4t3DX+Y7s1EM1ubylm8pJIcYPxfKETP00OpDl8D+Lrqa0Bkmxtm+EhOFrtCA==
 
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
