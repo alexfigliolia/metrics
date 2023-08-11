@@ -548,8 +548,8 @@ Next, let's create metrics using our `Factory`:
 import { Factory } from "./MyFactory";
 
 const MyMetric = Factory.createMetric("My Metric");
-const MyInteraction = Factory.createMetric("My Metric");
-const MyExperience = Factory.createMetric({
+const MyInteraction = Factory.createInteraction("My Metric");
+const MyExperience = Factory.createExperience({
   name: "My Metric",
   metrics: [MyMetric, MyInteraction]
 });
