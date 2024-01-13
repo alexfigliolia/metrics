@@ -26,7 +26,16 @@ export class CLSPlugin<
   private name = "";
   public selector: string;
   public layoutShifts: LayoutShift[] = [];
-  public initialLayout: Layout = CLSPlugin.DOMRect;
+  private static readonly DOMRect = {
+    x: 0,
+    y: 0,
+    top: 0,
+    right: 0,
+    left: 0,
+    bottom: 0,
+    height: 0,
+    width: 0,
+  };
   private static readonly measures = [
     "x",
     "y",
@@ -37,6 +46,7 @@ export class CLSPlugin<
     "width",
     "height",
   ] as const;
+  public initialLayout: Layout = CLSPlugin.DOMRect;
   constructor(selector: string) {
     super();
     this.selector = selector;
@@ -164,22 +174,6 @@ export class CLSPlugin<
     }
     return layout;
   }
-
-  /**
-   * Initial Layout
-   *
-   * A zero'd out `Layout` object
-   */
-  private static readonly DOMRect = {
-    x: 0,
-    y: 0,
-    top: 0,
-    right: 0,
-    left: 0,
-    bottom: 0,
-    height: 0,
-    width: 0,
-  };
 
   /**
    * To JSON

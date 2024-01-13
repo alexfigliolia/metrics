@@ -1,17 +1,25 @@
 {
   "name": "@figliolia/metrics",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A developer-centric frontend performance library",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/mjs/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/mjs/index.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist",
     "src/*"
   ],
   "scripts": {
     "test": "jest",
-    "build": "rm -rf dist && tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "lint": "tsc --noemit && eslint ./ --fix"
+    "build": "npx ts-packager -e src",
+    "lint": "tsc --noemit && eslint ./src --fix"
   },
   "homepage": "https://github.com/alexfigliolia/metrics#readme",
   "repository": {
@@ -35,10 +43,11 @@
   "author": "Alex Figliolia",
   "license": "MIT",
   "dependencies": {
-    "@figliolia/event-emitter": "^1.0.8",
+    "@figliolia/event-emitter": "^1.1.2",
     "beaconer": "^1.0.1"
   },
   "devDependencies": {
+    "@figliolia/ts-packager": "^1.0.3",
     "@types/node": "^16.7.13",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
