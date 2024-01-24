@@ -386,8 +386,8 @@ const UserAvatar: FC<{ userID: string }> = ({ userID }) => {
 }
 ```
 The Metric found in the example above might look something like this when `stop()` is called:
-```json
-{
+```typescript
+const result = {
   "name": "Avatar",
   "startTime": 1000,
   "stopTime": 1200,
@@ -481,7 +481,7 @@ HomeScreenMetric.on("stop", (metric) => {
         "resources": {
           "criticalSize": 200000 // (bytes),
           "cacheRate": 75 // (%),
-          "extensions": ["js", ".css", ".svg"]
+          "extensions": ["js", "css", "svg"]
         }
       }
     }
@@ -592,7 +592,7 @@ export class MyLogger extends Plugin {
   }
 
   protected override reset(metric: Metric) {
-    console.log(metric.name, "Stopped!");
+    console.log(metric.name, "Reset!");
   }
 
   public method() {
