@@ -32,6 +32,9 @@ export class PageLoadPlugin<
   constructor(native = false) {
     super();
     this.native = native;
+    if(native) {
+      PageLoadPlugin.enable();
+    }
   }
 
   public override register(metric: T) {

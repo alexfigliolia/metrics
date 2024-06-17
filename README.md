@@ -13,7 +13,7 @@ yarn add @figliolia/metrics
 ## Basic Usage
 
 ### Instrumenting Metrics
-Metrics can wrap any experience pertinent to your end users. This can include user-onboarding, core features initializing, UI rendering with resolved API data, and more. Tracking these metrics in production environments will help assess real customer performance, catch regressions and bugs, and assist in identifying pain points within your application.
+Metrics can wrap any experience pertinent to your end users. This can include user-onboarding, core features initializing, UI rendering with resolved API data, and more. Tracking these metrics in production environments will help assess real customer performance, catch regressions and bugs, and assist with identifying pain points within your application.
 ```typescript
 import { Metric } from "@figliolia/metrics";
 
@@ -41,7 +41,7 @@ Interaction Metrics add reliability indicators to typical performance metrics. W
 ```typescript
 import { InteractionMetric } from "@figliolia/metrics";
 
-const SignUpMetric = new Metric("Sign Up");
+const SignUpMetric = new InteractionMetric("Sign Up");
 
 SignUpMetric.on("success" | "failure", metric => {
   // Listen for events fired!
@@ -56,7 +56,7 @@ async function signUp(username: string, password: string) {
     });
     const data = await response.json();
     // Redirect the user to the Home Page
-    await redirectToHome();
+    void redirectToHome(data);
     // Succeed the metric
     SignUpMetric.succeed();
   } catch(error: unknown) {
@@ -74,18 +74,19 @@ On top of tracking durations for various user-scenarios, your metrics can be sub
 
 Let's look at a working example:
 ```typescript
+// HomePageMetric.ts
 import { Metric } from "@figliolia/metrics";
 
-export const HomePagePerformance = new Metric("Home Page Interactive");
+export const HomePageInteractivity = new Metric("Home Page Interactivity");
 
-HomePagePerformance.on("stop", async (metric) => {
-  // Let's post our Home Page interactivity metric to an analytics service!
+HomePageInteractivity.on("stop", async (metric) => {
+  // On stop, let's post our Home Page Interactivity metric to an analytics service!
   void fetch("/analytics", {
     method: "POST",
     body: JSON.stringify(metric)
   });
-  // Let's preload a secondary experience once our Home Page
-  // is fully interactive
+  // Let's also preload a secondary experience once our Home Page
+  // becomes fully interactive
   ExpensiveOffScreenComponent.preload();
 });
 ```
@@ -95,7 +96,7 @@ Next up, let's implement the the metric above in our UI code:
 I'm going to use React for spinning up some example UI, but the same principals can apply to any UI framework you wish
 ```tsx
 import { useState, useEffect } from "react";
-import { HomePagePerformance } from "./HomePageMetric";
+import { HomePageInteractivity } from "./HomePageMetric";
 
 export const HomePage = () => {
   const [state, setState] = useState<{ 
@@ -105,12 +106,12 @@ export const HomePage = () => {
 
   useEffect(() => {
     // Let's start the metric immediately on mount!
-    HomePagePerformance.start();
+    HomePageInteractivity.start();
     fetch("/user-data").then(data => {
       setState(data);
       // Lets stop the metric once all data required
       // for interactivity has loaded successfully
-      HomePagePerformance.stop();
+      HomePageInteractivity.stop();
     });
   }, []);
 
@@ -122,7 +123,7 @@ export const HomePage = () => {
     <section>
       <h1>{state.username}</h1>
       <ol> 
-        {state.data.map(friend => <li>{friend}</li>)}
+        {state.data.map(friend => <li key={friend}>{friend}</li>)}
       </ol>
     </section>
   );
@@ -141,7 +142,7 @@ import { Metric, PageLoadPlugin } from "@figliolia/metrics";
 // pushstate event
 PageLoadPlugin.enable();
 
-export const HomePagePerformance = new Metric("Home Page Interactive", {
+export const HomePageInteractivity = new Metric("Home Page Interactivity", {
   // Next, let's add the plugin to our Metric!
   pageLoad: new PageLoadPlugin(true) 
   // `True` indicates the usage of the browser's History API
@@ -178,7 +179,7 @@ export const SignUpUI = () => {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
-      await redirectToHome();
+      void redirectToHome();
       // Succeed the metric after successfully redirecting
       SignUpMetric.succeed();
     } catch(error) {
@@ -199,6 +200,7 @@ export const SignUpUI = () => {
         type="password" 
         value={password}
         onChange={onChange(setPassword)} />
+      <button type="submit" value="Sign Up" />
     </form>
   );
 }
@@ -212,13 +214,13 @@ import type { Metric } from "@figliolia/metrics";
 
 const SignUpMetric = new InteractionMetric("Sign Up Reliability");
 
-SignUpMetric.on("stop", async (metric) => {
+SignUpMetric.on("stop", (metric) => {
   if(metric.succeeded) {
     redirectToHomeScreen();
   } else {
     showErrorModal();
   }
-  await fetch("/analytics", {
+  void fetch("/analytics", {
     method: "POST",
     body: JSON.stringify(metric)
   });
@@ -226,7 +228,7 @@ SignUpMetric.on("stop", async (metric) => {
 ```
 
 ### Experience Metrics
-Experience Metrics are designed to allow developers to compose metrics from one or more sub metrics. 
+Experience Metrics are designed to allow developers to compose metrics from one or more sub-metrics. 
 
 The `ExperienceMetric` derives it's duration using the earliest start-time and the latest stop-time across all of its child-metrics. This metric is great for complex interfaces with numerous moving parts. Some strong use-cases for Experience Metrics are:
 1. Complex interactions with several trackable sub-processes
@@ -238,9 +240,7 @@ import { Metric, ExperienceMetric } from "@figliolia/metrics";
 
 // Metrics for HomeScreen components
 export const HeaderMetric = new Metric("Header Performance");
-
 export const FooterMetric = new Metric("Footer Performance");
-
 export const DashboardMetric = new Metric("Dashboard Performance");
 
 // An Experience Metric for the HomeScreen
@@ -255,7 +255,7 @@ export const HomeScreenMetric = new ExperienceMetric({
 
 // Post the metric to your analytics service on "stop"
 HomeScreenMetric.on("stop", (metric) => {
-  await fetch("/analytics", {
+  void fetch("/analytics", {
     method: "POST",
     body: JSON.stringify(metric)
   });
@@ -263,7 +263,7 @@ HomeScreenMetric.on("stop", (metric) => {
 ```
 In the example above, the `HomeScreenMetric` will have a `startTime` equal to the *earliest* `start()` out of each of the sub-metrics. Similarly, the `HomeScreenMetric` will have a `stopTime` equal to the *last* `stop()` of each of the sub-metrics. The duration will be computed upon the `startTime` and `stopTime` to compose an overarching metric for the Home Screen.
 
-`ExperienceMetrics` can accept any combination of `Metrics` and `InteractionMetrics`.
+`ExperienceMetrics` can accept any combination of `Metrics` and `InteractionMetrics`. If you'd like to have a metric recording not only render performance, but the success-rate of a certain interaction, simply compose your `ExperienceMetric` using a combination of `Metric` and `InteractionMetric` instances.
 
 ## Plugins
 Plugins are a developer API designed to enhance your metrics with any extra data or functionality your wish to add. This library comes out of the box with a few `Plugins` designed to assist with:
@@ -282,7 +282,7 @@ In several of the prior examples, we've subscribed to our `Metric`'s `stop` even
 import { ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
 
 // This queue will batch requests to the destination specified
-const Queue = new ProcessingQueue("https://analytics-service.com", metrics => {
+const Queue = new ProcessingQueue("https://my-analytics-service.com", metrics => {
   /* 
     Format outgoing metrics in any way you wish
     and append any extra data to your request. The
@@ -292,7 +292,7 @@ const Queue = new ProcessingQueue("https://analytics-service.com", metrics => {
   return JSON.stringify(metrics)
 });
 ```
-Now, let's pass our `ProcessingQueue` to Metrics using the `ReporterPlugin`!
+Now, let's pass our `ProcessingQueue` to our `Metrics` using the `ReporterPlugin`!
 
 ```typescript
 import { 
@@ -343,23 +343,23 @@ import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { Metric, CLSPlugin } from "@figliolia/metrics";
 
-const UserAvatar: FC<{ userID: string }> = ({ userID }) => {
-  const uniqueID = useRef(crypto.randomUUID());
-
+const UserAvatar: FC<{ userID: string, nodeID: string }> = ({ userID, nodeID }) => {
   const metricRef = useRef(new Metric("Avatar", { 
-    CLS: new CLSPlugin(`.user-avatar[data-id="${uniqueID.current}"]`) // any dom selector 
+    CLS: new CLSPlugin(`#${nodeID}`) // any dom selector 
   }));
 
   const [user, setUser] = useState<{ 
     url: string, 
     name: string 
-  }>(null);
+  } | null>(null);
 
   useEffect(() => {
     const metric = metricRef.current;
+    // Start the metric on mount
     metric.start();
     fetch(`/user/${userID}`).then((user) => {
       setUser(user);
+      // Stop the metric after rendering the element with new data
       metric.stop();
     });
     return () => {
@@ -369,8 +369,8 @@ const UserAvatar: FC<{ userID: string }> = ({ userID }) => {
 
   return (
     <div 
-      className="user-avatar"
-      data-id={uniqueID.current}>
+      id={nodeID}
+      className="user-avatar">
       {
         !user ?
           <Loading />
@@ -395,7 +395,7 @@ const result = {
   "status": "complete",
   "plugins": {
     "CLS": {
-      "selector": "user-avatar[data-id='12345']",
+      "selector": "your node's css selector",
       // The Avatar instance's bounding client rect
       "initialLayout": {
         "x": 800,
@@ -407,8 +407,8 @@ const result = {
         "height": 50,
         "width": 50
       },
-      // This Avatar instance shifted 65px to the right between 
-      // the calls to Metric.start() and Metric.stop()
+      // A list of layout shifts that took place on the element between
+      // metric.start() and metric.stop()
       "layoutShifts": [{
         "time": 1200,
         "layoutShift": {
@@ -445,9 +445,7 @@ PageLoadPlugin.enable();
 
 // Home Screen sub-metrics
 export const HeaderMetric = new Metric("Header TTI");
-
 export const FooterMetric = new Metric("Footer TTI");
-
 export const DashboardMetric = new Metric("Dashboard TTI");
 
 // Home Screen Experience
@@ -478,6 +476,7 @@ HomeScreenMetric.on("stop", (metric) => {
       "status": "complete",
       "metrics": [HeaderMetric, FooterMetric, DashboardMetric],
       "plugins": {
+        // The resource-weight and cache reate of your Home Screen
         "resources": {
           "criticalSize": 200000 // (bytes),
           "cacheRate": 75 // (%),
