@@ -17,11 +17,11 @@ import type { PluginEvent } from "Plugin/types";
  * ```
  */
 export class LoggerPlugin<
-  T extends Metric<any, any> = Metric<any, any>
+  T extends Metric<any, any> = Metric<any, any>,
 > extends Plugin<T> {
   private events: Set<PluginEvent>;
   constructor(
-    events: PluginEvent[] = ["start", "stop", "success", "failure", "reset"]
+    events: PluginEvent[] = ["start", "stop", "success", "failure", "reset"],
   ) {
     super();
     this.events = new Set(events);
@@ -84,13 +84,13 @@ export class LoggerPlugin<
     console.log(
       "%cMetric:",
       "color: rgb(187, 186, 186); font-weight: bold",
-      `${metric.name}:`
+      `${metric.name}:`,
     );
     console.log(
       "   %c%s",
       `color: ${color}; font-weight: bold`,
       this.capitalize(event),
-      metric.toJSON()
+      metric.toJSON(),
     );
   }
 

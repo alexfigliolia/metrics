@@ -1,7 +1,7 @@
 import type { PluginTable, Status } from "Metrics/types";
 
 export type RequestFormatter = (
-  metrics: JSONMetric[]
+  metrics: JSONMetric[],
 ) => XMLHttpRequestBodyInit;
 
 export interface JSONMetric<T extends PluginTable = PluginTable> {

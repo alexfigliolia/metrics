@@ -3,7 +3,7 @@ import type { PluginTable } from "Metrics/types";
 
 export interface IExperience<
   T extends Metric<any, any>[] = Metric<any, any>[],
-  P extends PluginTable = PluginTable
+  P extends PluginTable = PluginTable,
 > {
   name: string;
   metrics: T;

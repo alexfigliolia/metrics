@@ -18,13 +18,13 @@ import { Plugin } from "Plugin/Plugin";
  * ```
  */
 export class CriticalResourcePlugin<
-  T extends Metric<any, any> = Metric<any, any>
+  T extends Metric<any, any> = Metric<any, any>,
 > extends Plugin<T> {
   public cacheRate = 0;
   public criticalSize = 0;
   public extensions: Set<string>;
   private static browserSupport =
-    typeof window !== undefined && "performance" in window;
+    typeof window !== "undefined" && "performance" in window;
   constructor(extensions: string[] = ["js", "css"]) {
     super();
     this.extensions = new Set(extensions);
@@ -50,7 +50,7 @@ export class CriticalResourcePlugin<
   protected override stop({ startTime, stopTime }: T) {
     const { cacheRate, criticalSize } = this.iterateResources(
       startTime,
-      stopTime
+      stopTime,
     );
     this.cacheRate = cacheRate;
     this.criticalSize = criticalSize;
@@ -70,7 +70,7 @@ export class CriticalResourcePlugin<
     let cachedSize = 0;
     let criticalSize = 0;
     const resources = performance.getEntriesByType(
-      "resource"
+      "resource",
     ) as PerformanceResourceTiming[];
     for (const resource of resources) {
       const { name, fetchStart, responseEnd, transferSize, decodedBodySize } =

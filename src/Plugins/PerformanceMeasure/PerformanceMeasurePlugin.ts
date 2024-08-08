@@ -21,7 +21,7 @@ import { Plugin } from "Plugin/Plugin";
  * ```
  */
 export class PerformanceMeasurePlugin<
-  T extends Metric<any, any>
+  T extends Metric<any, any>,
 > extends Plugin<T> {
   protected override stop(metric: T) {
     performance.measure(metric.name, {

@@ -1,6 +1,6 @@
 import { Beaconer } from "beaconer";
-import type { JSONMetric, RequestFormatter } from "./types";
 import type { Metric } from "Metrics/Metric";
+import type { JSONMetric, RequestFormatter } from "./types";
 
 /**
  * Processing Queue
@@ -23,7 +23,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   private scheduler: null | ReturnType<typeof setTimeout> = null;
   constructor(
     url: string,
-    formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter
+    formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter,
   ) {
     this.url = url;
     this.formatRequest = formatRequest;
@@ -54,7 +54,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
     }
     const success = await Beaconer.send(
       this.url,
-      this.formatRequest(this.queue)
+      this.formatRequest(this.queue),
     );
     this.queue = [];
     return success;
@@ -68,9 +68,9 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    */
   private schedule() {
     this.cancel();
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
       this.scheduler = setTimeout(() => {
-        void this.beacon().then((v) => resolve(v));
+        void this.beacon().then(v => resolve(v));
       }, 1000);
       document.addEventListener("visibilitychange", this.listenForSessionEnd);
     });
@@ -87,7 +87,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
       this.scheduler = null;
       document.removeEventListener(
         "visibilitychange",
-        this.listenForSessionEnd
+        this.listenForSessionEnd,
       );
     }
   }

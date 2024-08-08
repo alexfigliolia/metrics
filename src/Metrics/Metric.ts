@@ -1,6 +1,6 @@
 import { EventEmitter } from "@figliolia/event-emitter";
-import { CoreEvents, Status } from "./types";
 import type { MetricEvents, PluginTable } from "./types";
+import { CoreEvents, Status } from "./types";
 
 /**
  * Metric
@@ -24,16 +24,16 @@ import type { MetricEvents, PluginTable } from "./types";
  */
 export class Metric<
   T extends MetricEvents = MetricEvents,
-  P extends PluginTable = PluginTable
-> {
+  P extends PluginTable = PluginTable,
+> extends EventEmitter<T> {
   public name: string;
   public stopTime = 0;
   public startTime = 0;
   public duration = 0;
   public plugins = {} as P;
   public status: Status = Status.idol;
-  protected readonly emitter = new EventEmitter<T>();
   constructor(name: string, plugins = {} as P) {
+    super()
     this.name = name;
     this.plugins = plugins;
     this.registerPlugins();
@@ -51,7 +51,7 @@ export class Metric<
     }
     this.startTime = time;
     this.status = Status.inProgress;
-    this.emitter.emit(CoreEvents.start, this);
+    this.emit(CoreEvents.start, this);
   }
 
   /**
@@ -67,7 +67,7 @@ export class Metric<
     this.stopTime = time;
     this.duration = this.stopTime - this.startTime;
     this.status = status;
-    this.emitter.emit(CoreEvents.stop, this);
+    this.emit(CoreEvents.stop, this);
   }
 
   /**
@@ -81,27 +81,7 @@ export class Metric<
     this.stopTime = 0;
     this.startTime = 0;
     this.status = Status.idol;
-    this.emitter.emit(CoreEvents.reset, this);
-  }
-
-  /**
-   * On
-   *
-   * Registers an event listener on the metric
-   */
-  public on<T extends Parameters<(typeof this.emitter)["on"]>>(...params: T) {
-    const [event, listener] = params;
-    return this.emitter.on(event, listener);
-  }
-
-  /**
-   * Off
-   *
-   * Removes an event listener from the metric
-   */
-  public off<T extends Parameters<(typeof this.emitter)["off"]>>(...params: T) {
-    const [event, ID] = params;
-    return this.emitter.off(event, ID);
+    this.emit(CoreEvents.reset, this);
   }
 
   /**

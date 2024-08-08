@@ -1,7 +1,9 @@
 {
-	"ts-node": {
+	"tsx": {
+		"typeCheck": false,
 		"compilerOptions": {
-			"module": "commonjs"
+			"module": "CommonJS",
+			"moduleResolution": "Node"
 		}
 	},
 	"compilerOptions": {
@@ -47,8 +49,15 @@
 	},
 	"include": [
 		"src",
-		"**/*.ts",
-		"**/*.js",
+		"ci",
+		".eslintrc.cjs",
 		"**/*.json",
+		"**/*.ts",
+		"**/*.js"
+	],
+	"exclude": [
+		"coverage",
+		"dist",
+		"node_modules"
 	]
 }

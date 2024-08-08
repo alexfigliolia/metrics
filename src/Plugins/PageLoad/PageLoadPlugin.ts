@@ -20,7 +20,7 @@ import type { PageLoadJSON } from "./types";
  * ```
  */
 export class PageLoadPlugin<
-  T extends Metric<any, any> = Metric<any, any>
+  T extends Metric<any, any> = Metric<any, any>,
 > extends Plugin<T> {
   public native = false;
   private static timing = 0;
@@ -28,11 +28,11 @@ export class PageLoadPlugin<
   public initialLoad = false;
   public static historyEnabled = false;
   private static nativeCompatible =
-    typeof window !== undefined && !!window.history;
+    typeof window !== "undefined" && !!window.history;
   constructor(native = false) {
     super();
     this.native = native;
-    if(native) {
+    if (native) {
       PageLoadPlugin.enable();
     }
   }
@@ -40,7 +40,7 @@ export class PageLoadPlugin<
   public override register(metric: T) {
     if (!PageLoadPlugin.historyEnabled && this.native) {
       console.warn(
-        `${metric.name}: PageLoadPlugin - Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the plugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle`
+        `${metric.name}: PageLoadPlugin - Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the plugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle`,
       );
     }
     super.register(metric);

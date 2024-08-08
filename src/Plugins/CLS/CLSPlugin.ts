@@ -21,7 +21,7 @@ import type { Layout, LayoutShift } from "./types";
  * ```
  */
 export class CLSPlugin<
-  T extends Metric<any, any> = Metric<any, any>
+  T extends Metric<any, any> = Metric<any, any>,
 > extends Plugin<T> {
   private name = "";
   public selector: string;
@@ -113,11 +113,11 @@ export class CLSPlugin<
     if (!element) {
       if (this.initialLayout === CLSPlugin.DOMRect) {
         console.warn(
-          `${this.name}: CLSPlugin error - A DOM element with the selector "${this.selector}" was not found`
+          `${this.name}: CLSPlugin error - A DOM element with the selector "${this.selector}" was not found`,
         );
       } else {
         console.warn(
-          `${this.name}: CLSPlugin error - The element corresponding to the selector "${this.selector}" has been removed from the DOM`
+          `${this.name}: CLSPlugin error - The element corresponding to the selector "${this.selector}" has been removed from the DOM`,
         );
       }
     }

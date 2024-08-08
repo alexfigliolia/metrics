@@ -1,8 +1,8 @@
+import { ExperienceMetric } from "Experiences/ExperienceMetric";
+import { InteractionMetric } from "Interactions/InteractionMetric";
 import { Metric } from "Metrics/Metric";
 import type { MetricEvents, PluginTable } from "Metrics/types";
-import { InteractionMetric } from "Interactions/InteractionMetric";
-import { ExperienceMetric } from "Experiences/ExperienceMetric";
-import { ReporterPlugin, type ProcessingQueue } from "Plugins/Reporter";
+import { type ProcessingQueue, ReporterPlugin } from "Plugins/Reporter";
 import type { PluginFactoryTable, ToPluginTable } from "./types";
 
 /**
@@ -37,14 +37,14 @@ export class MetricFactory<U extends PluginFactoryTable> {
   private metricFactory(factories: U, Queue?: ProcessingQueue) {
     return <
       T extends MetricEvents = MetricEvents,
-      P extends PluginTable = PluginTable
+      P extends PluginTable = PluginTable,
     >(
       ...params: ConstructorParameters<typeof Metric<T, P>>
     ) => {
       const [name, plugins] = params;
       return new Metric(
         name,
-        this.initializePlugins(factories, plugins, Queue)
+        this.initializePlugins(factories, plugins, Queue),
       );
     };
   }
@@ -53,14 +53,14 @@ export class MetricFactory<U extends PluginFactoryTable> {
     return <
       S extends Record<string, any> = Record<string, any>,
       F extends Record<string, any> = Record<string, any>,
-      P extends PluginTable = PluginTable
+      P extends PluginTable = PluginTable,
     >(
       ...params: ConstructorParameters<typeof InteractionMetric<S, F, P>>
     ) => {
       const [name, plugins] = params;
       return new InteractionMetric(
         name,
-        this.initializePlugins(factories, plugins, Queue)
+        this.initializePlugins(factories, plugins, Queue),
       );
     };
   }
@@ -69,7 +69,7 @@ export class MetricFactory<U extends PluginFactoryTable> {
     return <
       E extends MetricEvents = MetricEvents,
       M extends Metric<any, any>[] = Metric<any, any>[],
-      P extends PluginTable = PluginTable
+      P extends PluginTable = PluginTable,
     >(
       ...params: ConstructorParameters<typeof ExperienceMetric<E, M, P>>
     ) => {
@@ -86,7 +86,7 @@ export class MetricFactory<U extends PluginFactoryTable> {
   private initializePlugins<P extends PluginTable = PluginTable>(
     factories: U,
     plugins?: P,
-    Queue?: ProcessingQueue
+    Queue?: ProcessingQueue,
   ) {
     const injection = (plugins || {}) as ToPluginTable<U> & P;
     for (const key in factories) {
@@ -95,7 +95,7 @@ export class MetricFactory<U extends PluginFactoryTable> {
       if (PluginProto === ReporterPlugin) {
         if (!Queue) {
           throw new Error(
-            "Please provide a `ProcessingQueue` to the `MetricFactory` when specifying the `ReporterPlugin`"
+            "Please provide a `ProcessingQueue` to the `MetricFactory` when specifying the `ReporterPlugin`",
           );
         }
         // @ts-ignore

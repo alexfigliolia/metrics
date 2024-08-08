@@ -1,8 +1,8 @@
 import { Metric } from "Metrics/Metric";
-import { ReliabilityEvents } from "./types";
-import type { InteractionEvents } from "./types";
-import { CoreEvents, Status } from "Metrics/types";
 import type { MetricEvents, PluginTable } from "Metrics/types";
+import { CoreEvents, Status } from "Metrics/types";
+import type { InteractionEvents } from "./types";
+import { ReliabilityEvents } from "./types";
 
 /**
  * Interaction Metric
@@ -39,7 +39,7 @@ import type { MetricEvents, PluginTable } from "Metrics/types";
 export class InteractionMetric<
   S extends Record<string, any> = Record<string, any>,
   F extends Record<string, any> = Record<string, any>,
-  P extends PluginTable = PluginTable
+  P extends PluginTable = PluginTable,
 > extends Metric<InteractionEvents<S, F> & MetricEvents, P> {
   public data?: S | F;
   public failed = false;
@@ -59,7 +59,7 @@ export class InteractionMetric<
     this.failed = false;
     this.succeeded = true;
     super.stop(stopTime);
-    this.emitter.emit(ReliabilityEvents.success, this);
+    this.emit(ReliabilityEvents.success, this);
   }
 
   /**
@@ -75,7 +75,7 @@ export class InteractionMetric<
     this.failed = true;
     this.succeeded = false;
     super.stop(stopTime, Status.failed);
-    this.emitter.emit(ReliabilityEvents.failure, this);
+    this.emit(ReliabilityEvents.failure, this);
   }
 
   /**
