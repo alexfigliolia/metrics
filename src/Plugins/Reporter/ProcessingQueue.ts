@@ -8,7 +8,7 @@ import type { JSONMetric, RequestFormatter } from "./types";
  * A scheduler for sending batches of metrics to a specified endpoint
  *
  * ```typescript
- * import { ProcessingQueue } from "@figliolia/metrics";
+ * import { ProcessingQueue } from "@ui-perf/metrics";
  *
  * const Queue = new ProcessingQueue("https://my-analytics-service", metrics => {
  *   // optionally format outgoing data

@@ -12,7 +12,7 @@ import type { PluginFactoryTable, ToPluginTable } from "./types";
  * configuration.
  *
  * ```typescript
- * const { ProcessingQueue, MetricFactory, LoggerPlugin } from "@figliolia/metrics";
+ * const { ProcessingQueue, MetricFactory, LoggerPlugin } from "@ui-perf/metrics";
  *
  * const Queue = new ProcessingQueue("/analytics");
  *
