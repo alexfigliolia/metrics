@@ -16,13 +16,9 @@ import type { PluginEvent } from "Plugin/types";
  * });
  * ```
  */
-export class LoggerPlugin<
-  T extends Metric<any, any> = Metric<any, any>,
-> extends Plugin<T> {
+export class LoggerPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
   private events: Set<PluginEvent>;
-  constructor(
-    events: PluginEvent[] = ["start", "stop", "success", "failure", "reset"],
-  ) {
+  constructor(events: PluginEvent[] = ["start", "stop", "success", "failure", "reset"]) {
     super();
     this.events = new Set(events);
   }
@@ -81,11 +77,7 @@ export class LoggerPlugin<
     if (!this.events.has(event)) {
       return;
     }
-    console.log(
-      "%cMetric:",
-      "color: rgb(187, 186, 186); font-weight: bold",
-      `${metric.name}:`,
-    );
+    console.log("%cMetric:", "color: rgb(187, 186, 186); font-weight: bold", `${metric.name}:`);
     console.log(
       "   %c%s",
       `color: ${color}; font-weight: bold`,

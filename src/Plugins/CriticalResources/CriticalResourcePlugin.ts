@@ -23,8 +23,7 @@ export class CriticalResourcePlugin<
   public cacheRate = 0;
   public criticalSize = 0;
   public extensions: Set<string>;
-  private static browserSupport =
-    typeof window !== "undefined" && "performance" in window;
+  private static browserSupport = typeof window !== "undefined" && "performance" in window;
   constructor(extensions: string[] = ["js", "css"]) {
     super();
     this.extensions = new Set(extensions);
@@ -48,10 +47,7 @@ export class CriticalResourcePlugin<
    * between the Metric's `start()` and `stop()` events
    */
   protected override stop({ startTime, stopTime }: T) {
-    const { cacheRate, criticalSize } = this.iterateResources(
-      startTime,
-      stopTime,
-    );
+    const { cacheRate, criticalSize } = this.iterateResources(startTime, stopTime);
     this.cacheRate = cacheRate;
     this.criticalSize = criticalSize;
   }
@@ -69,12 +65,9 @@ export class CriticalResourcePlugin<
     }
     let cachedSize = 0;
     let criticalSize = 0;
-    const resources = performance.getEntriesByType(
-      "resource",
-    ) as PerformanceResourceTiming[];
+    const resources = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
     for (const resource of resources) {
-      const { name, fetchStart, responseEnd, transferSize, decodedBodySize } =
-        resource;
+      const { name, fetchStart, responseEnd, transferSize, decodedBodySize } = resource;
       if (fetchStart < startTime || responseEnd > stopTime) {
         continue;
       }
@@ -99,8 +92,8 @@ export class CriticalResourcePlugin<
    */
   private parseExtension(url: string) {
     try {
-      return url?.split(/[#?]/)?.[0]?.split(".")?.pop()?.trim() || "";
-    } catch (error) {
+      return url?.split(/[#?]/)?.[0]?.split?.(".")?.pop()?.trim?.() ?? "";
+    } catch {
       return "";
     }
   }

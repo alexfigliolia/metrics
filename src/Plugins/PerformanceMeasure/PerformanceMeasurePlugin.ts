@@ -20,9 +20,7 @@ import { Plugin } from "Plugin/Plugin";
  * performance.getEntriesByName(metric.name);
  * ```
  */
-export class PerformanceMeasurePlugin<
-  T extends Metric<any, any>,
-> extends Plugin<T> {
+export class PerformanceMeasurePlugin<T extends Metric<any, any>> extends Plugin<T> {
   protected override stop(metric: T) {
     performance.measure(metric.name, {
       start: metric.startTime,

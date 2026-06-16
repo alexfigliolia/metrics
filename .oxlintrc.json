@@ -1,0 +1,58 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {},
+  "rules": {},
+  "settings": {
+    "jsdoc": {
+      "ignorePrivate": false,
+      "ignoreInternal": false,
+      "ignoreReplacesDocs": true,
+      "overrideReplacesDocs": true,
+      "augmentsExtendsReplacesDocs": false,
+      "implementsReplacesDocs": false,
+      "exemptDestructuredRootsFromChecks": false,
+      "tagNamePreference": {}
+    },
+    "vitest": {
+      "typecheck": false
+    }
+  },
+  "env": {
+    "builtin": true
+  },
+  "globals": {},
+  "ignorePatterns": ["node_modules/**", "./target/**", "fixtures/**", "dist"],
+  "overrides": [
+    {
+      "files": ["**/*.{ts}"],
+      "plugins": ["node", "eslint", "import", "promise", "typescript", "oxc"],
+      "rules": {
+        "typescript/no-explicit-any": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-floating-promises": [
+          "error",
+          {
+            "ignoreVoid": true
+          }
+        ],
+        "typescript/strict-boolean-expressions": "error",
+        "typescript/consistent-type-imports": "error",
+        "no-unused-vars": [
+          "error",
+          {
+            "args": "all",
+            "varsIgnorePattern": "^_",
+            "destructuredArrayIgnorePattern": "^_",
+            "argsIgnorePattern": "^_"
+          }
+        ],
+        "import/no-cycle": [
+          "error",
+          {
+            "maxDepth": 3
+          }
+        ]
+      }
+    }
+  ]
+}

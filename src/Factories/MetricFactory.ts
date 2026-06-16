@@ -35,17 +35,11 @@ export class MetricFactory<U extends PluginFactoryTable> {
   }
 
   private metricFactory(factories: U, Queue?: ProcessingQueue) {
-    return <
-      T extends MetricEvents = MetricEvents,
-      P extends PluginTable = PluginTable,
-    >(
+    return <T extends MetricEvents = MetricEvents, P extends PluginTable = PluginTable>(
       ...params: ConstructorParameters<typeof Metric<T, P>>
     ) => {
       const [name, plugins] = params;
-      return new Metric(
-        name,
-        this.initializePlugins(factories, plugins, Queue),
-      );
+      return new Metric(name, this.initializePlugins(factories, plugins, Queue));
     };
   }
 
@@ -58,10 +52,7 @@ export class MetricFactory<U extends PluginFactoryTable> {
       ...params: ConstructorParameters<typeof InteractionMetric<S, F, P>>
     ) => {
       const [name, plugins] = params;
-      return new InteractionMetric(
-        name,
-        this.initializePlugins(factories, plugins, Queue),
-      );
+      return new InteractionMetric(name, this.initializePlugins(factories, plugins, Queue));
     };
   }
 
