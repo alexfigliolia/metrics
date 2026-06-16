@@ -18,7 +18,7 @@ import type { ProcessingQueue } from "./ProcessingQueue";
  * Setting up the Reporting Plugin and Processing Queue:
  *
  * ```typescript
- * import { Metric, ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
+ * import { Metric, ReporterPlugin, ProcessingQueue } from "@ui-perf/metrics";
  *
  * const Queue = new ProcessingQueue("/analytics", metrics => {
  *   return JSON.stringify({

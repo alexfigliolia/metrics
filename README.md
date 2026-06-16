@@ -2,8 +2,6 @@
 
 A frontend performance library for composing metrics from real user experiences.
 
-This library has since been moved to `@ui-perf/metrics`
-
 ## Background
 
 In every heavily trafficked frontend application exists a means for monitoring user experience and customer success. This library is designed to allow developers to compose metrics based on the behaviors their of end users and the performance they experience.
@@ -11,9 +9,11 @@ In every heavily trafficked frontend application exists a means for monitoring u
 ## Getting Started
 
 ```bash
-npm i -S @figliolia/metrics
+npm i -S @ui-perf/metrics
 # or
-yarn add @figliolia/metrics
+yarn add @ui-perf/metrics
+# or
+pnpm add @ui-perf/metrics
 ```
 
 ## Basic Usage
@@ -23,7 +23,7 @@ yarn add @figliolia/metrics
 Metrics can wrap any experience pertinent to your end users. This can include user-onboarding, core features initializing, UI rendering with resolved API data, and more. Tracking these metrics in production environments will help assess real customer performance, catch regressions and bugs, and assist with identifying pain points within your application.
 
 ```typescript
-import { Metric } from "@figliolia/metrics";
+import { Metric } from "@ui-perf/metrics";
 
 const MyMetric = new Metric("Initial Render");
 
@@ -50,7 +50,7 @@ async function fetchData(query: any) {
 Interaction Metrics add reliability indicators to typical performance metrics. When using Interaction Metrics, you have the option to `fail` and `succeed` the metric based on the outcome of the interaction.
 
 ```typescript
-import { InteractionMetric } from "@figliolia/metrics";
+import { InteractionMetric } from "@ui-perf/metrics";
 
 const SignUpMetric = new InteractionMetric("Sign Up");
 
@@ -89,7 +89,7 @@ Let's look at a working example:
 
 ```typescript
 // HomePageMetric.ts
-import { Metric } from "@figliolia/metrics";
+import { Metric } from "@ui-perf/metrics";
 
 export const HomePageInteractivity = new Metric("Home Page Interactivity");
 
@@ -155,7 +155,7 @@ To do this, we need to add two lines of code to our metric's declaration:
 
 ```typescript
 // First let's import the PageLoadPlugin
-import { Metric, PageLoadPlugin } from "@figliolia/metrics";
+import { Metric, PageLoadPlugin } from "@ui-perf/metrics";
 
 // Enable the plugin to record a timestamp on each
 // pushstate event
@@ -178,7 +178,7 @@ Let's take a look at a working example:
 
 ```tsx
 import { useState, type Dispatch, type SetStateAction } from "react";
-import { InteractionMetric } from "@figliolia/metrics":
+import { InteractionMetric } from "@ui-perf/metrics":
 
 const SignUpMetric = new InteractionMetric("Sign Up Reliability");
 
@@ -233,7 +233,7 @@ When our form is submitted, our `SignUpMetric` is going to track the duration of
 2. Run reactionary logic to our Metric succeeding or failing
 
 ```typescript
-import type { Metric } from "@figliolia/metrics";
+import type { Metric } from "@ui-perf/metrics";
 
 const SignUpMetric = new InteractionMetric("Sign Up Reliability");
 
@@ -262,7 +262,7 @@ The `ExperienceMetric` derives it's duration using the earliest start-time and t
 Let's create a working example:
 
 ```typescript
-import { Metric, ExperienceMetric } from "@figliolia/metrics";
+import { Metric, ExperienceMetric } from "@ui-perf/metrics";
 
 // Metrics for HomeScreen components
 export const HeaderMetric = new Metric("Header Performance");
@@ -305,7 +305,7 @@ Let's dive into each plugin, then build one of our own!
 In several of the prior examples, we've subscribed to our `Metric`'s `stop` event in order to send our metrics to a backend server. Using the `ReporterPlugin`, we can actually handle all of our metric reporting without writing any individual subscriptions on each metric.
 
 ```typescript
-import { ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
+import { ReporterPlugin, ProcessingQueue } from "@ui-perf/metrics";
 
 // This queue will batch requests to the destination specified
 const Queue = new ProcessingQueue(
@@ -330,7 +330,7 @@ import {
   InteractionMetric,
   ExperienceMetric,
   ReporterPlugin,
-} from "@figliolia/metrics";
+} from "@ui-perf/metrics";
 import { Queue } from "./MyQueue";
 
 const MyMetric = new Metric("My Metric", {
@@ -357,7 +357,7 @@ The `ReporterPlugin` will also reliably send out all metrics in its `Queue` if a
 The `PageLoadPlugin` allows for measuring `Metric` durations using the latest browser navigation. This allows for measuring the duration of a feature's first paint (or TTI) relative to moment your application reaches the browser or transitions between routes.
 
 ```typescript
-import { Metric, PageLoadPlugin } from "@figliolia/metrics";
+import { Metric, PageLoadPlugin } from "@ui-perf/metrics";
 
 const ProfilePageMetric = new Metric("Profile Page", {
   pageLoad: new PageLoadPlugin(),
@@ -374,13 +374,11 @@ This plugin allows for tracking the layout position of a UI element between a Me
 
 ```tsx
 import type { FC } from "react";
-import { useState, useEffect } from "react";
-import { Metric, CLSPlugin } from "@figliolia/metrics";
+import { useState, useEffect, useId } from "react";
+import { Metric, CLSPlugin } from "@ui-perf/metrics";
 
-const UserAvatar: FC<{ userID: string; nodeID: string }> = ({
-  userID,
-  nodeID,
-}) => {
+const UserAvatar: FC<{ userID: string }> = ({ userID }) => {
+  const nodeID = useId();
   const metricRef = useRef(
     new Metric("Avatar", {
       CLS: new CLSPlugin(`#${nodeID}`), // any dom selector
@@ -484,7 +482,7 @@ import {
   Metric,
   PageLoadPlugin,
   CriticalResourcePlugin,
-} from "@figliolia/metrics";
+} from "@ui-perf/metrics";
 
 // Enable using the browser's navigation as the startTime
 PageLoadPlugin.enable();
@@ -535,7 +533,7 @@ HomeScreenMetric.on("stop", metric => {
 This plugin allows developers to access their metrics using the native Performance API. When the `PerformanceMeasurePlugin` is enabled, your `Metric` will create a `performance.measure()` each time its `stop()` event is reached:
 
 ```typescript
-import { Metric, PerformanceMeasurePlugin } from "@figliolia/metrics";
+import { Metric, PerformanceMeasurePlugin } from "@ui-perf/metrics";
 
 const MyMetric = new Metric("My Metric", {
   measure: new PerformanceMeasurePlugin(),
@@ -564,7 +562,7 @@ import {
   LoggerPlugin,
   ReporterPlugin,
   ProcessingQueue,
-} from "@figliolia/metrics";
+} from "@ui-perf/metrics";
 
 let Queue: ProcessingQueue | undefined;
 const Plugins = {
@@ -606,7 +604,7 @@ const MyExperience = Factory.createExperience({
 Creating factories can save time and effort when creating metrics. In a real world application we might have a `Metric` for each route we support - and each of these Metrics will likely need the `PageLoadPlugin`. To relieve the need to instantiate a `PageLoadPlugin` on each and every metric, we can create another `MetricFactory`.
 
 ```typescript
-import { MetricFactory, PageLoadPlugin } from "@figliolia/metrics";
+import { MetricFactory, PageLoadPlugin } from "@ui-perf/metrics";
 
 const RouteMetricFactory = new MetricFactory({
   pageLoad: PageLoadPlugin,
@@ -625,7 +623,7 @@ Now that we've gone through built-in plugins and applying them using Factories, 
 Plugins are designed to be a simple API for attaching functionality to your metrics. `Metrics` by default, emit events for `start`, `stop`, `reset`, and for `InteractionMetrics`, `success` and `failure`. Each of these events can be used to run customized logic through plugins:
 
 ```typescript
-import { Plugin, Metric } from "@figliolia/metrics";
+import { Plugin, Metric } from "@ui-perf/metrics";
 
 export class MyLogger extends Plugin {
   public myAttribute = true;
@@ -663,7 +661,7 @@ Now, let's build something that may be helpful in catching performance regressio
 Let's build a profiler for staging and development environments that log warnings when a Metric exceeds a certain threshold for duration:
 
 ```typescript
-import { Plugin, Metric } from "@figliolia/metrics";
+import { Plugin, Metric } from "@ui-perf/metrics";
 
 export class ProfilerPlugin extends Plugin {
   public threshold: number;
