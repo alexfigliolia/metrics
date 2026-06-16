@@ -2,6 +2,8 @@
 
 A frontend performance library for composing metrics from real user experiences.
 
+This library has since been moved to `@ui-perf/metrics`
+
 ## Background
 
 In every heavily trafficked frontend application exists a means for monitoring user experience and customer success. This library is designed to allow developers to compose metrics based on the behaviors their of end users and the performance they experience.
@@ -25,7 +27,7 @@ import { Metric } from "@figliolia/metrics";
 
 const MyMetric = new Metric("Initial Render");
 
-MyMetric.on("start" | "stop" | "reset", (metric) => {
+MyMetric.on("start" | "stop" | "reset", metric => {
   // Listen for events fired!
 });
 
@@ -52,7 +54,7 @@ import { InteractionMetric } from "@figliolia/metrics";
 
 const SignUpMetric = new InteractionMetric("Sign Up");
 
-SignUpMetric.on("success" | "failure", (metric) => {
+SignUpMetric.on("success" | "failure", metric => {
   // Listen for events fired!
 });
 
@@ -91,7 +93,7 @@ import { Metric } from "@figliolia/metrics";
 
 export const HomePageInteractivity = new Metric("Home Page Interactivity");
 
-HomePageInteractivity.on("stop", async (metric) => {
+HomePageInteractivity.on("stop", async metric => {
   // On stop, let's post our Home Page Interactivity metric to an analytics service!
   void fetch("/analytics", {
     method: "POST",
@@ -120,7 +122,7 @@ export const HomePage = () => {
   useEffect(() => {
     // Let's start the metric immediately on mount!
     HomePageInteractivity.start();
-    fetch("/user-data").then((data) => {
+    fetch("/user-data").then(data => {
       setState(data);
       // Lets stop the metric once all data required
       // for interactivity has loaded successfully
@@ -136,7 +138,7 @@ export const HomePage = () => {
     <section>
       <h1>{state.username}</h1>
       <ol>
-        {state.data.map((friend) => (
+        {state.data.map(friend => (
           <li key={friend}>{friend}</li>
         ))}
       </ol>
@@ -235,7 +237,7 @@ import type { Metric } from "@figliolia/metrics";
 
 const SignUpMetric = new InteractionMetric("Sign Up Reliability");
 
-SignUpMetric.on("stop", (metric) => {
+SignUpMetric.on("stop", metric => {
   if (metric.succeeded) {
     redirectToHomeScreen();
   } else {
@@ -274,7 +276,7 @@ export const HomeScreenMetric = new ExperienceMetric({
 });
 
 // Post the metric to your analytics service on "stop"
-HomeScreenMetric.on("stop", (metric) => {
+HomeScreenMetric.on("stop", metric => {
   void fetch("/analytics", {
     method: "POST",
     body: JSON.stringify(metric),
@@ -306,21 +308,29 @@ In several of the prior examples, we've subscribed to our `Metric`'s `stop` even
 import { ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
 
 // This queue will batch requests to the destination specified
-const Queue = new ProcessingQueue("https://my-analytics-service.com", (metrics) => {
-  /* 
+const Queue = new ProcessingQueue(
+  "https://my-analytics-service.com",
+  metrics => {
+    /* 
     Format outgoing metrics in any way you wish
     and append any extra data to your request. The
     returned value will be passed directly to HTTP
     calls as the body parameter
   */
-  return JSON.stringify(metrics);
-});
+    return JSON.stringify(metrics);
+  },
+);
 ```
 
 Now, let's pass our `ProcessingQueue` to our `Metrics` using the `ReporterPlugin`!
 
 ```typescript
-import { Metric, InteractionMetric, ExperienceMetric, ReporterPlugin } from "@figliolia/metrics";
+import {
+  Metric,
+  InteractionMetric,
+  ExperienceMetric,
+  ReporterPlugin,
+} from "@figliolia/metrics";
 import { Queue } from "./MyQueue";
 
 const MyMetric = new Metric("My Metric", {
@@ -367,7 +377,10 @@ import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { Metric, CLSPlugin } from "@figliolia/metrics";
 
-const UserAvatar: FC<{ userID: string; nodeID: string }> = ({ userID, nodeID }) => {
+const UserAvatar: FC<{ userID: string; nodeID: string }> = ({
+  userID,
+  nodeID,
+}) => {
   const metricRef = useRef(
     new Metric("Avatar", {
       CLS: new CLSPlugin(`#${nodeID}`), // any dom selector
@@ -383,7 +396,7 @@ const UserAvatar: FC<{ userID: string; nodeID: string }> = ({ userID, nodeID }) 
     const metric = metricRef.current;
     // Start the metric on mount
     metric.start();
-    fetch(`/user/${userID}`).then((user) => {
+    fetch(`/user/${userID}`).then(user => {
       setUser(user);
       // Stop the metric after rendering the element with new data
       metric.stop();
@@ -467,7 +480,11 @@ This plugin is designed to track resources contributing to a feature's [Critical
 Let's dive into an example using our `ExperienceMetric` from a previous example:
 
 ```typescript
-import { Metric, PageLoadPlugin, CriticalResourcePlugin } from "@figliolia/metrics";
+import {
+  Metric,
+  PageLoadPlugin,
+  CriticalResourcePlugin,
+} from "@figliolia/metrics";
 
 // Enable using the browser's navigation as the startTime
 PageLoadPlugin.enable();
@@ -491,7 +508,7 @@ export const HomeScreenMetric = new ExperienceMetric({
   },
 });
 
-HomeScreenMetric.on("stop", (metric) => {
+HomeScreenMetric.on("stop", metric => {
   /*
     HomeScreenMetric {
       "name": "Home Screen",
@@ -542,7 +559,12 @@ const nativeMetric = performance.getEntriesByName("My Metric");
 In the past few examples, we've added plugins on an adhoc basis to the Metrics we create. Let's now look at creating Metrics with a default set of enabled plugins to save time and developer effort:
 
 ```typescript
-import { MetricFactory, LoggerPlugin, ReporterPlugin, ProcessingQueue } from "@figliolia/metrics";
+import {
+  MetricFactory,
+  LoggerPlugin,
+  ReporterPlugin,
+  ProcessingQueue,
+} from "@figliolia/metrics";
 
 let Queue: ProcessingQueue | undefined;
 const Plugins = {
@@ -652,7 +674,9 @@ export class ProfilerPlugin extends Plugin {
 
   protected override stop(metric) {
     if (ProfilerPlugin.enabled && metric.duration > this.threshold) {
-      console.warn(`${metric.name} exceeded the threshold of ${this.threshold} milliseconds.`);
+      console.warn(
+        `${metric.name} exceeded the threshold of ${this.threshold} milliseconds.`,
+      );
     }
   }
 }
