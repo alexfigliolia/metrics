@@ -43,7 +43,7 @@ export class Plugin<T extends Metric<any, any> = Metric<any, any>> {
     this.registered = true;
     const extension = Object.getPrototypeOf(this);
     const methods = Object.getOwnPropertyNames(extension);
-    methods.forEach(event => {
+    methods.forEach((event) => {
       if (this.validateEvent(event, metric)) {
         metric.on(event, this[event].bind(this));
       }

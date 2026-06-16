@@ -19,16 +19,13 @@ import type { PageLoadJSON } from "./types";
  * });
  * ```
  */
-export class PageLoadPlugin<
-  T extends Metric<any, any> = Metric<any, any>,
-> extends Plugin<T> {
+export class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
   public native = false;
   private static timing = 0;
   public transition = false;
   public initialLoad = false;
   public static historyEnabled = false;
-  private static nativeCompatible =
-    typeof window !== "undefined" && !!window.history;
+  private static nativeCompatible = typeof window !== "undefined" && !!window.history;
   constructor(native = false) {
     super();
     this.native = native;

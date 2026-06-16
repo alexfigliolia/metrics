@@ -29,9 +29,7 @@ import type { ProcessingQueue } from "./ProcessingQueue";
  *
  * ```
  */
-export class ReporterPlugin<
-  T extends Metric<any, any> = Metric<any, any>,
-> extends Plugin<T> {
+export class ReporterPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
   private processor: ProcessingQueue<T>;
   constructor(processor: ProcessingQueue<T>) {
     super();

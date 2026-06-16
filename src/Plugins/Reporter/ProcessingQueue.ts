@@ -21,10 +21,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
   public queue: JSONMetric[] = [];
   public formatRequest: RequestFormatter;
   private scheduler: null | ReturnType<typeof setTimeout> = null;
-  constructor(
-    url: string,
-    formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter,
-  ) {
+  constructor(url: string, formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter) {
     this.url = url;
     this.formatRequest = formatRequest;
     this.listenForSessionEnd = this.listenForSessionEnd.bind(this);
@@ -52,10 +49,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
     if (!this.queue.length) {
       return true;
     }
-    const success = await Beaconer.send(
-      this.url,
-      this.formatRequest(this.queue),
-    );
+    const success = await Beaconer.send(this.url, this.formatRequest(this.queue));
     this.queue = [];
     return success;
   }
@@ -68,9 +62,9 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    */
   private schedule() {
     this.cancel();
-    return new Promise<boolean>(resolve => {
+    return new Promise<boolean>((resolve) => {
       this.scheduler = setTimeout(() => {
-        void this.beacon().then(v => resolve(v));
+        void this.beacon().then((v) => resolve(v));
       }, 1000);
       document.addEventListener("visibilitychange", this.listenForSessionEnd);
     });
@@ -82,13 +76,10 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    * Cancels a currently scheduled request
    */
   private cancel() {
-    if (this.scheduler) {
+    if (this.scheduler !== null) {
       clearTimeout(this.scheduler);
       this.scheduler = null;
-      document.removeEventListener(
-        "visibilitychange",
-        this.listenForSessionEnd,
-      );
+      document.removeEventListener("visibilitychange", this.listenForSessionEnd);
     }
   }
 
@@ -99,18 +90,18 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    * immediately sent to the provided destination containing the contents of
    * the queue
    */
-  private listenForSessionEnd() {
+  private listenForSessionEnd = () => {
     if (document.visibilityState === "hidden") {
       void this.beacon();
     }
-  }
+  };
 
   /**
    * Default Formatter
    *
    * Returns a stringified queue
    */
-  private static defaultFormatter(items: any[]) {
+  private static defaultFormatter = (items: any[]) => {
     return JSON.stringify(items);
-  }
+  };
 }

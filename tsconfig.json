@@ -1,63 +1,27 @@
 {
-	"tsx": {
-		"typeCheck": false,
-		"compilerOptions": {
-			"module": "CommonJS",
-			"moduleResolution": "Node"
-		}
-	},
-	"compilerOptions": {
-		"target": "ES2015",
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"esnext"
-		],
-		"allowJs": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"noFallthroughCasesInSwitch": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"noEmit": true,
-		"baseUrl": "./src",
-		"paths": {
-			"Experiences/*": [
-				"Experiences/*"
-			],
-			"Factories/*": [
-				"Factories/*"
-			],
-			"Interactions/*": [
-				"Interactions/*"
-			],
-			"Metrics/*": [
-				"Metrics/*"
-			],
-			"Plugin/*": [
-				"Plugin/*"
-			],
-			"Plugins/*": [
-				"Plugins/*"
-			],
-		}
-	},
-	"include": [
-		"src",
-		"ci",
-		".eslintrc.cjs",
-		"**/*.json",
-		"**/*.ts",
-		"**/*.js"
-	],
-	"exclude": [
-		"coverage",
-		"dist",
-		"node_modules"
-	]
+  "compilerOptions": {
+    "target": "ES2015",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "paths": {
+      "Experiences/*": ["./src/Experiences/*"],
+      "Factories/*": ["./src/Factories/*"],
+      "Interactions/*": ["./src/Interactions/*"],
+      "Metrics/*": ["./src/Metrics/*"],
+      "Plugin/*": ["./src/Plugin/*"],
+      "Plugins/*": ["./src/Plugins/*"]
+    }
+  },
+  "include": ["src", "ci", ".eslintrc.cjs", "**/*.json", "**/*.ts", "**/*.js"],
+  "exclude": ["coverage", "dist", "node_modules"]
 }

@@ -33,7 +33,7 @@ export class Metric<
   public plugins = {} as P;
   public status: Status = Status.idol;
   constructor(name: string, plugins = {} as P) {
-    super()
+    super();
     this.name = name;
     this.plugins = plugins;
     this.registerPlugins();
