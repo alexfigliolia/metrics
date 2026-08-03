@@ -49,10 +49,10 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
     if (!this.queue.size) {
       return true;
     }
-    const queuedItems: T[] = [];
+    const queuedItems: [string, T][] = [];
     for (const [ID, metric] of this.queue) {
       if (!metric.hasPendingTasks) {
-        queuedItems.push(metric);
+        queuedItems.push([ID, metric]);
         this.queue.delete(ID);
       }
     }
@@ -62,11 +62,11 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
     if (queuedItems.length) {
       const success = await Beaconer.send(
         this.url,
-        this.formatRequest(queuedItems.map(m => m.toJSON())),
+        this.formatRequest(queuedItems.map(([, m]) => m.toJSON())),
       );
       if (!success) {
-        for (const metric of queuedItems) {
-          this.queue.set(this.IDs.get(), metric);
+        for (const [ID, metric] of queuedItems) {
+          this.queue.set(ID, metric);
         }
       }
       return success;
