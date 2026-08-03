@@ -1,5 +1,6 @@
-import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
+import type { Metric } from "Metrics/Metric";
+
 import type { PageLoadJSON } from "./types";
 
 /**
@@ -19,28 +20,16 @@ import type { PageLoadJSON } from "./types";
  * });
  * ```
  */
-export class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
-  public native = false;
+export class PageLoadPlugin<
+  T extends Metric<any, any> = Metric<any, any>,
+> extends Plugin<T> {
   private static timing = 0;
+  private static enabled = false;
   public transition = false;
   public initialLoad = false;
-  public static historyEnabled = false;
-  private static nativeCompatible = typeof window !== "undefined" && !!window.history;
-  constructor(native = false) {
+  constructor() {
     super();
-    this.native = native;
-    if (native) {
-      PageLoadPlugin.enable();
-    }
-  }
-
-  public override register(metric: T) {
-    if (!PageLoadPlugin.historyEnabled && this.native) {
-      console.warn(
-        `${metric.name}: PageLoadPlugin - Please enable the PageLoadPlugin by calling PageLoadPlugin.enable() before passing the plugin to your metrics. It is recommended to call PageLoadPlugin.enable() as early as possible in your application lifecycle`,
-      );
-    }
-    super.register(metric);
+    PageLoadPlugin.enable();
   }
 
   /**
@@ -75,10 +64,10 @@ export class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any>> exten
    * browser's most recent navigation
    */
   public static enable() {
-    if (this.historyEnabled || !PageLoadPlugin.nativeCompatible) {
+    if (this.enabled) {
       return;
     }
-    this.historyEnabled = true;
+    this.enabled = true;
     const { pushState } = history;
     history.pushState = (...args: Parameters<typeof history.pushState>) => {
       this.setTiming();
@@ -108,12 +97,8 @@ export class PageLoadPlugin<T extends Metric<any, any> = Metric<any, any>> exten
     const properties: PageLoadJSON = {
       transition: this.transition,
       initialLoad: this.initialLoad,
+      lastNavigation: PageLoadPlugin.timing,
     };
-    if (this.native) {
-      properties.historyAPI = true;
-      properties.historyEnabled = PageLoadPlugin.historyEnabled;
-      properties.browserSupport = PageLoadPlugin.nativeCompatible;
-    }
     return properties;
   }
 }

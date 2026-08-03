@@ -1,4 +1,5 @@
 import type { Plugin } from "Plugin/Plugin";
+
 import type { Metric } from "./Metric";
 
 export enum Status {

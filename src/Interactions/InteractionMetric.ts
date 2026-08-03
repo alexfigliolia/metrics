@@ -1,8 +1,9 @@
-import { Metric } from "Metrics/Metric";
-import type { MetricEvents, PluginTable } from "Metrics/types";
 import { CoreEvents, Status } from "Metrics/types";
-import type { InteractionEvents } from "./types";
+import type { MetricEvents, PluginTable } from "Metrics/types";
+import { Metric } from "Metrics/Metric";
+
 import { ReliabilityEvents } from "./types";
+import type { InteractionEvents } from "./types";
 
 /**
  * Interaction Metric

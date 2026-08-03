@@ -27,6 +27,8 @@
       "files": ["**/*.{ts}"],
       "plugins": ["node", "eslint", "import", "promise", "typescript", "oxc"],
       "rules": {
+        "typescript/prefer-readonly": "error",
+        "typescript/unbound-method": "off",
         "typescript/no-explicit-any": "off",
         "typescript/no-unsafe-assignment": "off",
         "typescript/no-floating-promises": [
@@ -35,7 +37,7 @@
             "ignoreVoid": true
           }
         ],
-        "typescript/strict-boolean-expressions": "error",
+        "typescript/strict-boolean-expressions": "off",
         "typescript/consistent-type-imports": "error",
         "no-unused-vars": [
           "error",

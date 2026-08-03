@@ -1,5 +1,5 @@
-import type { Metric } from "Metrics/Metric";
 import type { PluginTable } from "Metrics/types";
+import type { Metric } from "Metrics/Metric";
 
 export interface IExperience<
   T extends Metric<any, any>[] = Metric<any, any>[],
