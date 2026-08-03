@@ -1,5 +1,6 @@
-import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
+import type { Metric } from "Metrics/Metric";
+
 import type { ProcessingQueue } from "./ProcessingQueue";
 
 /**
@@ -29,8 +30,10 @@ import type { ProcessingQueue } from "./ProcessingQueue";
  *
  * ```
  */
-export class ReporterPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
-  private processor: ProcessingQueue<T>;
+export class ReporterPlugin<
+  T extends Metric<any, any> = Metric<any, any>,
+> extends Plugin<T> {
+  private readonly processor: ProcessingQueue<T>;
   constructor(processor: ProcessingQueue<T>) {
     super();
     this.processor = processor;

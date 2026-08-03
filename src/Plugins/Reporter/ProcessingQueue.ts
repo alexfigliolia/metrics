@@ -1,6 +1,8 @@
-import { Beaconer } from "beaconer";
 import type { Metric } from "Metrics/Metric";
-import type { JSONMetric, RequestFormatter } from "./types";
+import { Beaconer } from "beaconer";
+import { AutoIncrementingID } from "@figliolia/event-emitter";
+
+import type { RequestFormatter } from "./types";
 
 /**
  * Processing Queue
@@ -17,15 +19,13 @@ import type { JSONMetric, RequestFormatter } from "./types";
  * ```
  */
 export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
-  public url: string;
-  public queue: JSONMetric[] = [];
-  public formatRequest: RequestFormatter;
+  public readonly queue = new Map<string, T>();
+  private readonly IDs = new AutoIncrementingID();
   private scheduler: null | ReturnType<typeof setTimeout> = null;
-  constructor(url: string, formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter) {
-    this.url = url;
-    this.formatRequest = formatRequest;
-    this.listenForSessionEnd = this.listenForSessionEnd.bind(this);
-  }
+  constructor(
+    public readonly url: string,
+    public readonly formatRequest: RequestFormatter = ProcessingQueue.defaultFormatter,
+  ) {}
 
   /**
    * Enqueue
@@ -34,7 +34,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    * destination
    */
   public enqueue(item: T) {
-    this.queue.push(item.toJSON());
+    this.queue.set(this.IDs.get(), item);
     return this.schedule();
   }
 
@@ -46,12 +46,32 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    */
   private async beacon() {
     this.cancel();
-    if (!this.queue.length) {
+    if (!this.queue.size) {
       return true;
     }
-    const success = await Beaconer.send(this.url, this.formatRequest(this.queue));
-    this.queue = [];
-    return success;
+    const queuedItems: T[] = [];
+    for (const [ID, metric] of this.queue) {
+      if (!metric.hasPendingTasks) {
+        queuedItems.push(metric);
+        this.queue.delete(ID);
+      }
+    }
+    if (this.queue.size && !this.scheduler) {
+      void this.schedule();
+    }
+    if (queuedItems.length) {
+      const success = await Beaconer.send(
+        this.url,
+        this.formatRequest(queuedItems.map(m => m.toJSON())),
+      );
+      if (!success) {
+        for (const metric of queuedItems) {
+          this.queue.set(this.IDs.get(), metric);
+        }
+      }
+      return success;
+    }
+    return true;
   }
 
   /**
@@ -62,11 +82,13 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    */
   private schedule() {
     this.cancel();
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
       this.scheduler = setTimeout(() => {
-        void this.beacon().then((v) => resolve(v));
+        void this.beacon().then(v => resolve(v));
       }, 1000);
-      document.addEventListener("visibilitychange", this.listenForSessionEnd);
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", this.listenForSessionEnd);
+      }
     });
   }
 
@@ -79,7 +101,12 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
     if (this.scheduler !== null) {
       clearTimeout(this.scheduler);
       this.scheduler = null;
-      document.removeEventListener("visibilitychange", this.listenForSessionEnd);
+      if (typeof document !== "undefined") {
+        document.removeEventListener(
+          "visibilitychange",
+          this.listenForSessionEnd,
+        );
+      }
     }
   }
 
@@ -90,8 +117,11 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    * immediately sent to the provided destination containing the contents of
    * the queue
    */
-  private listenForSessionEnd = () => {
-    if (document.visibilityState === "hidden") {
+  private readonly listenForSessionEnd = () => {
+    if (
+      typeof document !== "undefined" &&
+      document.visibilityState === "hidden"
+    ) {
       void this.beacon();
     }
   };
@@ -101,7 +131,7 @@ export class ProcessingQueue<T extends Metric<any, any> = Metric<any, any>> {
    *
    * Returns a stringified queue
    */
-  private static defaultFormatter = (items: any[]) => {
+  private static readonly defaultFormatter = (items: any[]) => {
     return JSON.stringify(items);
   };
 }

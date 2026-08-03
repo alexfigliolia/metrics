@@ -1,7 +1,8 @@
-import { AutoIncrementingID } from "@figliolia/event-emitter";
-import { Metric } from "Metrics/Metric";
 import type { MetricEvents, PluginTable } from "Metrics/types";
 import { CoreEvents, Status } from "Metrics/types";
+import { Metric } from "Metrics/Metric";
+import { AutoIncrementingID } from "@figliolia/event-emitter";
+
 import type { IExperience } from "./types";
 
 /**
@@ -44,8 +45,8 @@ export class ExperienceMetric<
   P extends PluginTable = PluginTable,
 > extends Metric<E, P> {
   public readonly metrics: M;
-  private IDs = new AutoIncrementingID();
-  private completedMetrics = new Set<string>();
+  private readonly IDs = new AutoIncrementingID();
+  private readonly completedMetrics = new Set<string>();
   private reference: Record<string, string> = {};
   constructor({ name, metrics, plugins }: IExperience<M, P>) {
     super(name, plugins);
@@ -63,7 +64,7 @@ export class ExperienceMetric<
    * Experiences's `reset` event
    */
   public override reset() {
-    this.metrics.forEach((metric) => {
+    this.metrics.forEach(metric => {
       metric.reset();
     });
     super.reset();
@@ -77,7 +78,7 @@ export class ExperienceMetric<
    * them on the instance
    */
   private indexMetrics() {
-    this.metrics.forEach((metric) => {
+    this.metrics.forEach(metric => {
       this.reference[metric.name] = this.IDs.get();
     });
   }
@@ -91,8 +92,8 @@ export class ExperienceMetric<
    * the child metrics
    */
   private listenForStops() {
-    this.metrics.forEach((metric) => {
-      metric.on(CoreEvents.stop, (m) => {
+    this.metrics.forEach(metric => {
+      metric.on(CoreEvents.stop, m => {
         const ID = this.reference[m.name];
         if (!this.completedMetrics.has(ID)) {
           this.completedMetrics.add(ID);
@@ -100,7 +101,7 @@ export class ExperienceMetric<
             super.stop(
               Math.max.apply(
                 null,
-                this.metrics.map((m) => m.stopTime),
+                this.metrics.map(m => m.stopTime),
               ),
             );
           }
@@ -118,8 +119,8 @@ export class ExperienceMetric<
    * start time out of each of the child metrics
    */
   private listenForStarts() {
-    this.metrics.forEach((metric) => {
-      metric.on(CoreEvents.start, (m) => {
+    this.metrics.forEach(metric => {
+      metric.on(CoreEvents.start, m => {
         if (this.status === Status.idol) {
           this.start(m.startTime);
         } else {

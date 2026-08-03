@@ -1,4 +1,7 @@
-import { EventEmitter } from "@figliolia/event-emitter";
+import { EventEmitter, type Listener } from "@figliolia/event-emitter";
+
+import { TaskTracker } from "../TaskTracker";
+
 import type { MetricEvents, PluginTable } from "./types";
 import { CoreEvents, Status } from "./types";
 
@@ -32,6 +35,7 @@ export class Metric<
   public duration = 0;
   public plugins = {} as P;
   public status: Status = Status.idol;
+  private readonly tracker = new TaskTracker();
   constructor(name: string, plugins = {} as P) {
     super();
     this.name = name;
@@ -85,6 +89,24 @@ export class Metric<
   }
 
   /**
+   * Has Pending Tasks
+   *
+   * Returns true if any listeners on the metric have not yet complete
+   */
+  public get hasPendingTasks() {
+    return this.tracker.hasPendingTasks;
+  }
+
+  /**
+   * Await Pending Tasks
+   *
+   * Polls pending plugin tasks and returns a promise that'll resolve once complete
+   */
+  public awaitPendingTasks(pollInterval = 200) {
+    return this.tracker.await(pollInterval);
+  }
+
+  /**
    * Register Plugins
    *
    * Instantiates each plugin specified
@@ -121,5 +143,10 @@ export class Metric<
    */
   public get events() {
     return CoreEvents;
+  }
+
+  public override on<K extends keyof T>(event: K, listener: Listener<T[K]>) {
+    const callback = this.tracker.register(listener);
+    return super.on(event, callback);
   }
 }

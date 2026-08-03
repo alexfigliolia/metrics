@@ -1,5 +1,6 @@
-import type { Metric } from "Metrics/Metric";
 import { Plugin } from "Plugin/Plugin";
+import type { Metric } from "Metrics/Metric";
+
 import type { Layout, LayoutShift } from "./types";
 
 /**
@@ -20,7 +21,9 @@ import type { Layout, LayoutShift } from "./types";
  * metric.stop() // Records all layout shifts that occurred between the start and stop time
  * ```
  */
-export class CLSPlugin<T extends Metric<any, any> = Metric<any, any>> extends Plugin<T> {
+export class CLSPlugin<
+  T extends Metric<any, any> = Metric<any, any>,
+> extends Plugin<T> {
   private name = "";
   public selector: string;
   public layoutShifts: LayoutShift[] = [];
