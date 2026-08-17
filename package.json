@@ -46,22 +46,18 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@figliolia/event-emitter": "^1.1.5",
+    "@figliolia/event-emitter": "1.2.0",
     "beaconer": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
-    "oxfmt": "^0.55.0",
+    "oxfmt": "^0.63.0",
     "oxlint": "^1.14.0",
     "oxlint-tsgolint": "^0.23.0",
     "tsdown": "^0.22.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
-  },
-  "peerDependencies": {
-    "@figliolia/event-emitter": "^1.1.5",
-    "beaconer": "^1.0.2"
   },
   "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8"
 }
