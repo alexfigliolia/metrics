@@ -33,10 +33,8 @@ import type { ProcessingQueue } from "./ProcessingQueue";
 export class ReporterPlugin<
   T extends Metric<any, any> = Metric<any, any>,
 > extends Plugin<T> {
-  private readonly processor: ProcessingQueue<T>;
-  constructor(processor: ProcessingQueue<T>) {
+  constructor(private readonly processor: ProcessingQueue<T>) {
     super();
-    this.processor = processor;
   }
 
   /**

@@ -16,260 +16,94 @@ yarn add @ui-perf/metrics
 pnpm add @ui-perf/metrics
 ```
 
-## Basic Usage
+1. [Metrics](#metrics)
+2. [Interaction Metrics](#interaction-metrics)
+3. [Experience Metrics](#experience-metrics)
+4. [Plugins](#plugins)
+5. [CLS Plugin](#cls-plugin)
+6. [Critical Resource Plugin](#critical-resource-plugin)
+7. [Performance Measure Plugin](#performance-measure-plugin)
+8. [Building Your Own Plugins](#building-your-own-plugins)
+9. [Metric Factory](#metric-factory)
+10. [Demo Application](#demo-application)
 
-### Instrumenting Metrics
+## Metrics
 
-Metrics can wrap any experience pertinent to your end users. This can include user-onboarding, core features initializing, UI rendering with resolved API data, and more. Tracking these metrics in production environments will help assess real customer performance, catch regressions and bugs, and assist with identifying pain points within your application.
+This library's `Metric` API can time any experience pertinent to your end users. This can include render performance, resolution of API calls, or the duration required to complete a certain user action. 
+
+In it's most basic form, a metric an be instrumented as follows:
 
 ```typescript
 import { Metric } from "@ui-perf/metrics";
 
 const MyMetric = new Metric("Initial Render");
 
+async function AppStartup() {
+  // Start the metric at the beginning of a critical user flow
+  MyMetric.start();
+  const response = await fetch('/ui-data');
+  const data = await response.json();
+  await renderDataPopulatedUI(data);
+  // Stop the metric once the user action is complete
+  MyMetric.stop();
+}
+
+// Optionally, listen to and record events firing:
 MyMetric.on("start" | "stop" | "reset", metric => {
   // Listen for events fired!
 });
-
-async function fetchData(query: any) {
-  MyMetric.start();
-  const response = await fetch({
-    url: "/data",
-    data: JSON.stringify(query),
-  });
-  const data = await response.json();
-  // format response data for your UI framework
-  await renderUI(data);
-  // Stop the metric once the UI renders with its data
-  MyMetric.stop();
-}
 ```
 
-### Instrumenting Interactions
+## Interaction Metrics
 
-Interaction Metrics add reliability indicators to typical performance metrics. When using Interaction Metrics, you have the option to `fail` and `succeed` the metric based on the outcome of the interaction.
+`InteractionMetrics` add reliability indicators to typical performance based `Metrics`. When using `InteractionMetrics`, you have the option to `fail` or `succeed` the metric based on the outcome of the interaction.
 
 ```typescript
 import { InteractionMetric } from "@ui-perf/metrics";
 
-const SignUpMetric = new InteractionMetric("Sign Up");
-
-SignUpMetric.on("success" | "failure", metric => {
-  // Listen for events fired!
-});
+const UserSignUpMetric = new InteractionMetric("Sign Up");
 
 async function signUp(username: string, password: string) {
-  SignUpMetric.start();
+  // Start the metric when the user submits the signin form or begins
+  // typing into one of the fields
+  UserSignUpMetric.start();
   try {
     const response = await fetch({
+      method: 'POST',
       url: "/sign-up",
       data: JSON.stringify({ username, password }),
     });
-    const data = await response.json();
-    // Redirect the user to the Home Page
-    void redirectToHome(data);
-    // Succeed the metric
-    SignUpMetric.succeed();
+    const userData = await response.json();
+    await redirectUserToTheHomePage(userData);
+    // Succeed the metric and append non-sensitive data to the metric
+    UserSignUpMetric.succeed(userData);
   } catch (error: unknown) {
-    // Fail the metric
-    SignUpMetric.fail({ error });
+    // Fail the metric and append the error to the metric
+    UserSignUpMetric.fail({ error });
   }
 }
-```
 
-## Metrics and Recipes
-
-### Metrics
-
-The `Metric` interface is designed for tracking all kinds of performance indicators. The `Metric` class operates as an event emitter, tracking start and stop times for a given user experience.
-
-On top of tracking durations for various user-scenarios, your metrics can be subscribed to from anywhere in your application. This means you can execute any logic you wish that will be deferred entirely behind the successful execution of your `Metric`.
-
-Let's look at a working example:
-
-```typescript
-// HomePageMetric.ts
-import { Metric } from "@ui-perf/metrics";
-
-export const HomePageInteractivity = new Metric("Home Page Interactivity");
-
-HomePageInteractivity.on("stop", async metric => {
-  // On stop, let's post our Home Page Interactivity metric to an analytics service!
-  void fetch("/analytics", {
-    method: "POST",
-    body: JSON.stringify(metric),
-  });
-  // Let's also preload a secondary experience once our Home Page
-  // becomes fully interactive
-  ExpensiveOffScreenComponent.preload();
+// Optionally, listen to and record events firing:
+UserSignUpMetric.on("success" | "failure", metric => {
+  // Listen for events fired!
 });
 ```
 
-Next up, let's implement the the metric above in our UI code:
+## Experience Metrics
 
-I'm going to use React for spinning up some example UI, but the same principals can apply to any UI framework you wish
+`ExperienceMetrics` are designed to allow developers to compose metrics from one or more sub-metrics. They are the "bigger picture" that surrounds multiple concurrent metrics running in unsion - such as multiple elements in a single page app resolving asynchronously.
 
-```tsx
-import { useState, useEffect } from "react";
-import { HomePageInteractivity } from "./HomePageMetric";
-
-export const HomePage = () => {
-  const [state, setState] = useState<{
-    username: string;
-    friends: string[];
-  }>(undefined);
-
-  useEffect(() => {
-    // Let's start the metric immediately on mount!
-    HomePageInteractivity.start();
-    fetch("/user-data").then(data => {
-      setState(data);
-      // Lets stop the metric once all data required
-      // for interactivity has loaded successfully
-      HomePageInteractivity.stop();
-    });
-  }, []);
-
-  if (!data) {
-    return <Loader />;
-  }
-
-  return (
-    <section>
-      <h1>{state.username}</h1>
-      <ol>
-        {state.data.map(friend => (
-          <li key={friend}>{friend}</li>
-        ))}
-      </ol>
-    </section>
-  );
-};
-```
-
-With less than 10 lines of code, we've implemented a metric that times the interactivity of our Home Screen, preloads secondary content, and sends the results to a backend server!
-
-But let's take this one step further. The metric above effectively records the duration of the `/user-data` request and the content rendering on the screen. Let's instead, allow the metric to begin recording as soon as the browser navigates to the `HomePage`.
-
-To do this, we need to add two lines of code to our metric's declaration:
-
-```typescript
-// First let's import the PageLoadPlugin
-import { Metric, PageLoadPlugin } from "@ui-perf/metrics";
-
-// Enable the plugin to record a timestamp on each
-// pushstate event
-PageLoadPlugin.enable();
-
-export const HomePageInteractivity = new Metric("Home Page Interactivity", {
-  // Next, let's add the plugin to our Metric!
-  pageLoad: new PageLoadPlugin(true),
-  // `True` indicates the usage of the browser's History API
-});
-```
-
-Now our "Home Page Interactive" metric will record the time between the browser navigating to the Home Page and our data-populated UI rendering - giving us a real measurement of the page's interactivity.
-
-### Interaction Metrics
-
-These metrics combine the functionality of the core `Metric` interface with `success/failure` indicators. They're designed for tracking not only performance, but feature-reliability as well.
-
-Let's take a look at a working example:
-
-```tsx
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { InteractionMetric } from "@ui-perf/metrics":
-
-const SignUpMetric = new InteractionMetric("Sign Up Reliability");
-
-export const SignUpUI = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const onChange = (func: Dispatch<SetStateAction<string>>) => {
-    return (e: KeyboardEvent<HTMLInputElement>) => {
-      func(e.target.value);
-    }
-  }
-
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    // Start the metric on submit
-    SignUpMetric.start();
-    try {
-      await fetch("/sign-up", {
-        method: "POST",
-        body: JSON.stringify({ email, password })
-      });
-      void redirectToHome();
-      // Succeed the metric after successfully redirecting
-      SignUpMetric.succeed();
-    } catch(error) {
-      // Fail the metric with an attached error
-      SignUpMetric.fail({ error });
-    }
-  };
-
-  return (
-    <form onSubmit={onSubmit}>
-      <input
-        name="Email"
-        type="text"
-        value={email}
-        onChange={onChange(setEmail)} />
-      <input
-        name="Password"
-        type="password"
-        value={password}
-        onChange={onChange(setPassword)} />
-      <button type="submit" value="Sign Up" />
-    </form>
-  );
-}
-```
-
-When our form is submitted, our `SignUpMetric` is going to track the duration of our form submission as well as its rate of success and failure. Similar to our first example, we can subscribe to our metric's events and
-
-1. Post our metrics to a remote service
-2. Run reactionary logic to our Metric succeeding or failing
-
-```typescript
-import type { Metric } from "@ui-perf/metrics";
-
-const SignUpMetric = new InteractionMetric("Sign Up Reliability");
-
-SignUpMetric.on("stop", metric => {
-  if (metric.succeeded) {
-    redirectToHomeScreen();
-  } else {
-    showErrorModal();
-  }
-  void fetch("/analytics", {
-    method: "POST",
-    body: JSON.stringify(metric),
-  });
-});
-```
-
-### Experience Metrics
-
-Experience Metrics are designed to allow developers to compose metrics from one or more sub-metrics.
-
-The `ExperienceMetric` derives it's duration using the earliest start-time and the latest stop-time across all of its child-metrics. This metric is great for complex interfaces with numerous moving parts. Some strong use-cases for Experience Metrics are:
-
-1. Complex interactions with several trackable sub-processes
-2. UI routes with multiple core features delivered to the browser asynchronously
-
-Let's create a working example:
+The `ExperienceMetric` derives it's duration using the **earliest start-time** and the **latest stop-time** across all of its child-metrics. 
 
 ```typescript
 import { Metric, ExperienceMetric } from "@ui-perf/metrics";
 
 // Metrics for HomeScreen components
-export const HeaderMetric = new Metric("Header Performance");
-export const FooterMetric = new Metric("Footer Performance");
-export const DashboardMetric = new Metric("Dashboard Performance");
+export const HeaderMetric = new Metric("Header Render Performance");
+export const FooterMetric = new Metric("Footer Render Performance");
+export const DashboardMetric = new Metric("Dashboard Render Performance");
 
-// An Experience Metric for the HomeScreen
+// Wrap each metric in the the ExperienceMetric
 export const HomeScreenMetric = new ExperienceMetric({
   name: "Home Screen Performance",
   metrics: [HeaderMetric, FooterMetric, DashboardMetric],
@@ -284,9 +118,9 @@ HomeScreenMetric.on("stop", metric => {
 });
 ```
 
-In the example above, the `HomeScreenMetric` will have a `startTime` equal to the _earliest_ `start()` out of each of the sub-metrics. Similarly, the `HomeScreenMetric` will have a `stopTime` equal to the _last_ `stop()` of each of the sub-metrics. The duration will be computed upon the `startTime` and `stopTime` to compose an overarching metric for the Home Screen.
+In the example above, the `HomeScreenMetric` will have a `startTime` equal to the _earliest_ `start()` and a `stopTime` equal to the _latest_ `stop()` out of each of the sub-metrics.
 
-`ExperienceMetrics` can accept any combination of `Metrics` and `InteractionMetrics`. If you'd like to have a metric recording not only render performance, but the success-rate of a certain interaction, simply compose your `ExperienceMetric` using a combination of `Metric` and `InteractionMetric` instances.
+`ExperienceMetrics` can accept any combination of `Metrics`, `InteractionMetrics`, and even other `ExperienceMetrics`. If you'd like to have a metric recording not only render performance, but the success-rate of a certain interaction, compose your `ExperienceMetric` using a combination of `Metrics` and `InteractionMetrics`
 
 ## Plugins
 
@@ -295,14 +129,14 @@ Plugins are a developer API designed to enhance your metrics with any extra data
 1. Sending your metrics to the backend service of your choosing (`ReporterPlugin`)
 2. Tracking your metrics in relation to the most recent browser navigation (`PageLoadPlugin`)
 3. Tracking cumulative layout shift for metrics associated with UI features (`CLSPlugin`)
-4. Tracking the total weight resources required to deliver a feature or metric (`CriticalResourcePlugin`)
-5. Tracking the cache-rate of resources required to deliver a feature or metric (`CriticalResourcePlugin`)
+4. Tracking the weight and cache-rates of critical resources required to deliver a feature or metric (`CriticalResourcePlugin`)
+5. Setup and testing (`LoggerPlugin`)
 
 Let's dive into each plugin, then build one of our own!
 
 ### Reporter Plugin
 
-In several of the prior examples, we've subscribed to our `Metric`'s `stop` event in order to send our metrics to a backend server. Using the `ReporterPlugin`, we can actually handle all of our metric reporting without writing any individual subscriptions on each metric.
+In a prior example, we subscribed to our `Metric`'s `stop` event in order to send our metrics to a backend server. Using the `ReporterPlugin`, we can actually handle all of our metric reporting without writing individual subscriptions on each metric:
 
 ```typescript
 import { ReporterPlugin, ProcessingQueue } from "@ui-perf/metrics";
@@ -348,13 +182,15 @@ const MyExperience = new ExperienceMetric({
 });
 ```
 
-Each of the metrics above will now add their results to the `ProcessingQueue` when their `stop` events are called. The Queue will then make batched post requests to the specified endpoint containing each metric's results.
+Each of the metrics above will now automatically push their results to the `Queue` when their `stop` events are called. The Queue will then make batched post requests to the specified endpoint containing each metric's results. 
 
-The `ReporterPlugin` will also reliably send out all metrics in its `Queue` if a browser session is terminated or moved to the background unexpectedly.
+By default the `ProcessingQueue` will attempt to [Beacon](https://developer.mozilla.org/en-US/docs/Web/API/Beacon_API) the data and fallback and standard HTTP Requests.
+
+The `ReporterPlugin` will also reliably push all metrics over the network if a browser session is terminated or moved into the background.
 
 ### Page Load Plugin
 
-The `PageLoadPlugin` allows for measuring `Metric` durations using the latest browser navigation. This allows for measuring the duration of a feature's first paint (or TTI) relative to moment your application reaches the browser or transitions between routes.
+The `PageLoadPlugin` allows for measuring `Metric` durations using the latest browser navigation. This better occumodates for metrics measuring first paint, TTI, or render times typically relative to browser navigations.
 
 ```typescript
 import { Metric, PageLoadPlugin } from "@ui-perf/metrics";
@@ -368,41 +204,46 @@ When calling `ProfilePageMetric.start()`, the `Metric`'s `startTime` is set to t
 
 ### CLS Plugin
 
-Cumulative Layout Shift is a visual stability metric designed to measure the propensity for elements on the page to suddenly change positions. CLS occurs most commonly between a page's first-paint and subsequent paints where data begins populating the page. A common strategy for minimizing CLS is to render data-hydrated pages on the server - however, some UI features require the client to fully function. For features such as these, this library provides the `CLSPlugin`.
+Cumulative Layout Shift is a visual stability metric designed to measure the propensity for elements on the page to suddenly change positions. CLS occurs most commonly between a page's first-paint and subsequent paints where data begins populating the page. A common strategy for minimizing CLS is to render data-populated pages on the server - however, some UI features require the client to fully function.
 
-This plugin allows for tracking the layout position of a UI element between a Metric's `start()` and `stop()` calls. On `start()` the plugin will capture the target element's absolute position. On `stop()`, the absolute position will be captured again and compared to the prior position:
+This plugin allows for tracking the layout position of a UI element between a Metric's `start()` and `stop()` calls.  On `start()` the plugin will capture the target element's absolute position. On `stop()`, the current position will be compared the position previously captured. Any differences in layout will be recorded and attached to the metric.
 
 ```tsx
-import type { FC } from "react";
 import { useState, useEffect, useId } from "react";
 import { Metric, CLSPlugin } from "@ui-perf/metrics";
 
-const UserAvatar: FC<{ userID: string }> = ({ userID }) => {
+function UserAvatar({ userID }) {
   const nodeID = useId();
+  
   const metricRef = useRef(
     new Metric("Avatar", {
       CLS: new CLSPlugin(`#${nodeID}`), // any dom selector
     }),
   );
 
-  const [user, setUser] = useState<{
-    url: string;
-    name: string;
-  } | null>(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const metric = metricRef.current;
-    // Start the metric on mount
+    // Start the metric on mount (this will capture the target
+    // element's initial layout)
     metric.start();
-    fetch(`/user/${userID}`).then(user => {
-      setUser(user);
-      // Stop the metric after rendering the element with new data
-      metric.stop();
-    });
-    return () => {
-      metric.reset();
-    };
+    fetch(`/user/${userID}`)
+      .then(response => response.json())
+      .then(setUser);
+
+    // Reset the metric on unmount or change to userID
+    return () => metric.reset();
   }, [userID]);
+
+  useEffect(() => {
+    if(user) {
+      // stop the metric once the user data has resolved (this
+      // will capture the element's layout a second time and
+      // compare it)
+      metric.stop()
+    }
+  }, [user])
 
   return (
     <div id={nodeID} className="user-avatar">
@@ -430,8 +271,8 @@ const result = {
   status: "complete",
   plugins: {
     CLS: {
-      selector: "your node's css selector",
-      // The Avatar instance's bounding client rect
+      selector: "#yourNodeID",
+      // The Avatar's initial boundingClientRect
       initialLayout: {
         x: 800,
         y: 200,
@@ -442,14 +283,15 @@ const result = {
         height: 50,
         width: 50,
       },
-      // A list of layout shifts that took place on the element between
+      // A list of layout shifts that took place on Avatar between
       // metric.start() and metric.stop()
       layoutShifts: [
         {
           time: 1200,
           layoutShift: {
-            right: 65,
-            width: 65,
+            width: 65, 
+            // a 65 pixel difference on the node's width was
+            // detected at the 1200 millisecond mark
           },
         },
       ],
@@ -458,22 +300,22 @@ const result = {
 };
 ```
 
-There's one more cool feature found under-the-hood of the `CLSPlugin`. When using the plugin, you can record the position of an element any number of times between calls to `Metric.start()` and `Metric.stop()`. If you happen to have more rendering conditions than the example found above, you can run the following as many times as you wish:
+When using the plugin, you can inspect your target element for CLS any number of times between calls to `Metric.start()` and `Metric.stop()`. To do so invoke the `CLSPlugin.inspect()`
 
 ```typescript
 const AvatarMetric = new Metric("Avatar", {
-  CLS: new CLSPlugin(".user-avatar"),
+  CLS: new CLSPlugin("#userAvatar"),
 });
 
 AvatarMetric.plugins.CLS.inspect();
 // The `inspect()` method will calculate the elements current
 // position and create an entry in the `layoutShifts` array
-// if a shift is detected!
+// if a shift is detected
 ```
 
 ### Critical Resource Plugin
 
-This plugin is designed to track resources contributing to a feature's [Critical Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path). The plugin will calculate the total weight of JavaScript and CSS required to deliver your feature to the browser as well as the cache-rate of those resources. By default, all `JavaScript` and `CSS` resources served to the browser will be accounted for, but developers may opt in to tracking any file extensions they wish.
+This plugin is designed to track the resources contributing to a feature's [Critical Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path). The plugin will calculate the total weight of JavaScript and CSS required to deliver your feature to the browser as well as the cache-rate of those resources. By default, all `JavaScript` and `CSS` resources served to the browser will be accounted for, but developers may opt in to tracking any file extensions they wish.
 
 Let's dive into an example using our `ExperienceMetric` from a previous example:
 
@@ -484,28 +326,29 @@ import {
   CriticalResourcePlugin,
 } from "@ui-perf/metrics";
 
-// Enable using the browser's navigation as the startTime
-PageLoadPlugin.enable();
-
 // Home Screen sub-metrics
-export const HeaderMetric = new Metric("Header TTI");
-export const FooterMetric = new Metric("Footer TTI");
-export const DashboardMetric = new Metric("Dashboard TTI");
+export const HeaderMetric = new Metric("Header Performance");
+export const FooterMetric = new Metric("Footer Performance");
+export const DashboardMetric = new Metric("Dashboard Performancea");
 
 // Home Screen Experience
 export const HomeScreenMetric = new ExperienceMetric({
   name: "Home Screen",
   metrics: [HeaderMetric, FooterMetric, DashboardMetric],
   plugins: {
-    // Let's enable the `PageLoadPlugin` to track durations from
-    // the browser's most recent navigation
+    // Let's enable the `PageLoadPlugin` to track durations relative
+    // to the browser's most recent navigation
     pageLoad: new PageLoadPlugin(),
     // Let's add our `CriticalResourcePlugin` to track Critical
     // Path and cache rate for JavaScript, CSS, and SVG's
     resources: new CriticalResourcePlugin(["js", "css", "svg"]),
   },
 });
+```
 
+At `stop()`, the `HomeScreenMetric's` Critical Resource data will look like the following:
+
+```typescript
 HomeScreenMetric.on("stop", metric => {
   /*
     HomeScreenMetric {
@@ -519,7 +362,7 @@ HomeScreenMetric.on("stop", metric => {
         // The resource-weight and cache reate of your Home Screen
         "resources": {
           "criticalSize": 200000 // (bytes),
-          "cacheRate": 75 // (%),
+          "cacheRate": 75 // (perceent),
           "extensions": ["js", "css", "svg"]
         }
       }
@@ -552,123 +395,59 @@ const nativeMetric = performance.getEntriesByName("My Metric");
 */
 ```
 
-### Simplifying Metric Creation
-
-In the past few examples, we've added plugins on an adhoc basis to the Metrics we create. Let's now look at creating Metrics with a default set of enabled plugins to save time and developer effort:
-
-```typescript
-import {
-  MetricFactory,
-  LoggerPlugin,
-  ReporterPlugin,
-  ProcessingQueue,
-} from "@ui-perf/metrics";
-
-let Queue: ProcessingQueue | undefined;
-const Plugins = {
-  // Specify any Plugins you wish
-  logger: LoggerPlugin,
-  reporter: ReporterPlugin,
-};
-
-if (process.env.NODE_ENV === "production") {
-  // Remove logging in production
-  delete Plugins.logger;
-  // initialize the ProcessingQueue to report metrics
-  // to your server
-  Queue = new ProcessingQueue("/analytics");
-} else {
-  // Remove reporting during development and testing
-  delete Plugins.reporter;
-}
-
-export const Factory = new MetricFactory(Plugins, Queue);
-```
-
-Next, let's create metrics using our `Factory`:
-
-```typescript
-import { Factory } from "./MyFactory";
-
-const MyMetric = Factory.createMetric("My Metric");
-const MyInteraction = Factory.createInteraction("My Metric");
-const MyExperience = Factory.createExperience({
-  name: "My Metric",
-  metrics: [MyMetric, MyInteraction],
-});
-// In production, each metric will have the `ReporterPlugin` enabled
-
-// During development and testing, each metric will have the `LoggerPlugin` enabled
-```
-
-Creating factories can save time and effort when creating metrics. In a real world application we might have a `Metric` for each route we support - and each of these Metrics will likely need the `PageLoadPlugin`. To relieve the need to instantiate a `PageLoadPlugin` on each and every metric, we can create another `MetricFactory`.
-
-```typescript
-import { MetricFactory, PageLoadPlugin } from "@ui-perf/metrics";
-
-const RouteMetricFactory = new MetricFactory({
-  pageLoad: PageLoadPlugin,
-});
-
-// Metrics for each Route in our application
-export const HomeMetric = RouteMetricFactory.createMetric("Home Page");
-export const ContactPage = RouteMetricFactory.createMetric("Contact Page");
-export const ProfileMetric = RouteMetricFactory.createMetric("Profile Page");
-```
-
 ### Building Your Own Plugins
 
-Now that we've gone through built-in plugins and applying them using Factories, let's talk about building plugins of our own.
-
-Plugins are designed to be a simple API for attaching functionality to your metrics. `Metrics` by default, emit events for `start`, `stop`, `reset`, and for `InteractionMetrics`, `success` and `failure`. Each of these events can be used to run customized logic through plugins:
+To build your own plugin, import the `Plugin` class and extend it:
 
 ```typescript
 import { Plugin, Metric } from "@ui-perf/metrics";
 
 export class MyLogger extends Plugin {
-  public myAttribute = true;
-  // To subscribe to a Metric's events, simply override its
-  // corresponding method:
+  // To tap into a Metric's lifecycle, simply override one of its
+  // corresponding methods:
   protected override start(metric: Metric) {
+    // run some code on a metric's start
     console.log(metric.name, "Started!");
   }
 
   protected override stop(metric: Metric) {
+    // run some code on a metric's stop
     console.log(metric.name, "Stopped!");
   }
 
   protected override reset(metric: Metric) {
+    // run some code on a metric's reset
     console.log(metric.name, "Reset!");
   }
 
+  // Add any public facing API you wish
+  public myAttribute = true;
   public method() {
     console.log("Called my method!");
   }
 }
 
-// Let's add this logging plugin to a Metric!
+// Add your plugin to a metric
 const MyMetric = new Metric("My Metric", {
   logger: new MyLogger(),
 });
+
 // Run publicly exposed methods
 MyMetric.plugins.logger.method();
 // Access the current state of your plugin
 MyMetric.plugins.logger.myAttribute = true;
 ```
 
-Now, let's build something that may be helpful in catching performance regressions before they reach production.
+### Profiling Example
 
-Let's build a profiler for staging and development environments that log warnings when a Metric exceeds a certain threshold for duration:
+Let's build a plugin for staging/testing environments that can be helpful in catching performance regressions before they reach production.
 
 ```typescript
 import { Plugin, Metric } from "@ui-perf/metrics";
 
 export class ProfilerPlugin extends Plugin {
-  public threshold: number;
-  private static enabled = process.env.NODE_ENV !== "production";
-  constructor(threshold: number) {
-    this.threshold = threshold;
-  }
+  private static readonly enabled = import.meta.env.PROD;
+  constructor(public threshold: number) {}
 
   protected override stop(metric) {
     if (ProfilerPlugin.enabled && metric.duration > this.threshold) {
@@ -685,6 +464,58 @@ export const MyMetric = new Metric("My Metric", {
 ```
 
 Using our new plugin, `MyMetric` will log a warning to the console each time its duration exceeds `1000ms`.
+
+## Simplifying Metric Creation
+
+Adding the same set of plugins to every metric in your codebase can be cumbersome to maintain. To make scaffold plugins with a predefined set of plugins, this library comes with the `MetricFactory`.
+
+### Metric Factory
+In the following example we'll assume that a resonable number of metrics are going to want to use the `ReporterPlugin` to post their results to an analytics server.
+
+We'll also assume that during development we don't want our metrics posting data to servers. Here's a quick `MetricFactory` recipe for accomplishing that:
+
+```typescript
+import {
+  MetricFactory,
+  LoggerPlugin,
+  ReporterPlugin,
+  ProcessingQueue,
+} from "@ui-perf/metrics";
+
+let Queue: ProcessingQueue | undefined;
+
+const Plugins = {
+  // Specify any Plugins you wish
+  logger: LoggerPlugin,
+  reporter: ReporterPlugin,
+} as const;
+
+if (import.meta.env.PROD) {
+  // Remove logging in production
+  delete Plugins.logger;
+  // initialize the ProcessingQueue to report metrics
+  // to your server
+  Queue = new ProcessingQueue("/analytics");
+} else {
+  // Remove reporting during development and testing
+  delete Plugins.reporter;
+}
+
+export const Factory = new MetricFactory(Plugins, Queue);
+
+const MyMetric = Factory.createMetric("My Metric");
+
+const MyInteraction = Factory.createInteraction("My Interaction");
+
+const MyExperience = Factory.createExperience({
+  name: "My Experience",
+  metrics: [MyMetric, MyInteraction],
+});
+
+// In production, each metric will have the `ReporterPlugin` enabled
+// During development and testing, each metric will have the
+// LoggerPlugin enabled
+```
 
 ### Demo Application
 
