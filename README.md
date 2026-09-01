@@ -29,7 +29,7 @@ pnpm add @ui-perf/metrics
 
 ## Metrics
 
-This library's `Metric` API can time any experience pertinent to your end users. This can include render performance, resolution of API calls, or the duration required to complete a certain user action. 
+This library's `Metric` API can time any experience pertinent to your end users. This can include render performance, resolution of API calls, or the duration required to complete a certain user action.
 
 In it's most basic form, a metric an be instrumented as follows:
 
@@ -41,7 +41,7 @@ const MyMetric = new Metric("Initial Render");
 async function AppStartup() {
   // Start the metric at the beginning of a critical user flow
   MyMetric.start();
-  const response = await fetch('/ui-data');
+  const response = await fetch("/ui-data");
   const data = await response.json();
   await renderDataPopulatedUI(data);
   // Stop the metric once the user action is complete
@@ -69,7 +69,7 @@ async function signUp(username: string, password: string) {
   UserSignUpMetric.start();
   try {
     const response = await fetch({
-      method: 'POST',
+      method: "POST",
       url: "/sign-up",
       data: JSON.stringify({ username, password }),
     });
@@ -93,7 +93,7 @@ UserSignUpMetric.on("success" | "failure", metric => {
 
 `ExperienceMetrics` are designed to allow developers to compose metrics from one or more sub-metrics. They are the "bigger picture" that surrounds multiple concurrent metrics running in unsion - such as multiple elements in a single page app resolving asynchronously.
 
-The `ExperienceMetric` derives it's duration using the **earliest start-time** and the **latest stop-time** across all of its child-metrics. 
+The `ExperienceMetric` derives it's duration using the **earliest start-time** and the **latest stop-time** across all of its child-metrics.
 
 ```typescript
 import { Metric, ExperienceMetric } from "@ui-perf/metrics";
@@ -182,7 +182,7 @@ const MyExperience = new ExperienceMetric({
 });
 ```
 
-Each of the metrics above will now automatically push their results to the `Queue` when their `stop` events are called. The Queue will then make batched post requests to the specified endpoint containing each metric's results. 
+Each of the metrics above will now automatically push their results to the `Queue` when their `stop` events are called. The Queue will then make batched post requests to the specified endpoint containing each metric's results.
 
 By default the `ProcessingQueue` will attempt to [Beacon](https://developer.mozilla.org/en-US/docs/Web/API/Beacon_API) the data and fallback and standard HTTP Requests.
 
@@ -206,7 +206,7 @@ When calling `ProfilePageMetric.start()`, the `Metric`'s `startTime` is set to t
 
 Cumulative Layout Shift is a visual stability metric designed to measure the propensity for elements on the page to suddenly change positions. CLS occurs most commonly between a page's first-paint and subsequent paints where data begins populating the page. A common strategy for minimizing CLS is to render data-populated pages on the server - however, some UI features require the client to fully function.
 
-This plugin allows for tracking the layout position of a UI element between a Metric's `start()` and `stop()` calls.  On `start()` the plugin will capture the target element's absolute position. On `stop()`, the current position will be compared the position previously captured. Any differences in layout will be recorded and attached to the metric.
+This plugin allows for tracking the layout position of a UI element between a Metric's `start()` and `stop()` calls. On `start()` the plugin will capture the target element's absolute position. On `stop()`, the current position will be compared the position previously captured. Any differences in layout will be recorded and attached to the metric.
 
 ```tsx
 import { useState, useEffect, useId } from "react";
@@ -214,7 +214,7 @@ import { Metric, CLSPlugin } from "@ui-perf/metrics";
 
 function UserAvatar({ userID }) {
   const nodeID = useId();
-  
+
   const metricRef = useRef(
     new Metric("Avatar", {
       CLS: new CLSPlugin(`#${nodeID}`), // any dom selector
@@ -237,13 +237,13 @@ function UserAvatar({ userID }) {
   }, [userID]);
 
   useEffect(() => {
-    if(user) {
+    if (user) {
       // stop the metric once the user data has resolved (this
       // will capture the element's layout a second time and
       // compare it)
-      metric.stop()
+      metric.stop();
     }
-  }, [user])
+  }, [user]);
 
   return (
     <div id={nodeID} className="user-avatar">
@@ -257,7 +257,7 @@ function UserAvatar({ userID }) {
       )}
     </div>
   );
-};
+}
 ```
 
 The Metric found in the example above might look something like this when `stop()` is called:
@@ -289,7 +289,7 @@ const result = {
         {
           time: 1200,
           layoutShift: {
-            width: 65, 
+            width: 65,
             // a 65 pixel difference on the node's width was
             // detected at the 1200 millisecond mark
           },
@@ -470,6 +470,7 @@ Using our new plugin, `MyMetric` will log a warning to the console each time its
 Adding the same set of plugins to every metric in your codebase can be cumbersome to maintain. To make scaffold plugins with a predefined set of plugins, this library comes with the `MetricFactory`.
 
 ### Metric Factory
+
 In the following example we'll assume that a resonable number of metrics are going to want to use the `ReporterPlugin` to post their results to an analytics server.
 
 We'll also assume that during development we don't want our metrics posting data to servers. Here's a quick `MetricFactory` recipe for accomplishing that:
